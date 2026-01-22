@@ -8,6 +8,7 @@ import { useActiveUrl } from '@/hooks/use-active-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
+import { index as rolesPermissionsIndex } from '@/routes/roles-permissions';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { index } from '@/routes/users';
@@ -37,6 +38,11 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'User Management',
         href: index(),
+        icon: null,
+    },
+    {
+        title: 'Roles & Permissions',
+        href: rolesPermissionsIndex(),
         icon: null,
     },
 ];

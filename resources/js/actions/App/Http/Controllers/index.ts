@@ -4,6 +4,7 @@ import InventoryController from './InventoryController'
 import PendingTransactionsController from './PendingTransactionsController'
 import Settings from './Settings'
 import POSController from './POSController'
+import ReportsController from './ReportsController'
 
 const Controllers = {
     DashboardController: Object.assign(DashboardController, DashboardController),
@@ -12,6 +13,7 @@ const Controllers = {
     PendingTransactionsController: Object.assign(PendingTransactionsController, PendingTransactionsController),
     Settings: Object.assign(Settings, Settings),
     POSController: Object.assign(POSController, POSController),
+    ReportsController: Object.assign(ReportsController, ReportsController),
 }
 
 export default Controllers

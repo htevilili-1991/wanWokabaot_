@@ -87,3 +87,9 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
     Route::post('pending-sales/{pendingSale}/complete', [App\Http\Controllers\POSController::class, 'completePendingSale'])->name('pending-sales.complete');
     Route::post('pending-sales/{pendingSale}/cancel', [App\Http\Controllers\PendingTransactionsController::class, 'cancel'])->name('pending-sales.cancel');
 });
+
+// Reports (accessible by all authenticated users)
+Route::middleware(['auth'])->group(function () {
+    Route::get('reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports.index');
+    Route::post('reports/generate', [App\Http\Controllers\ReportsController::class, 'generate'])->name('reports.generate');
+});

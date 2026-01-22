@@ -18,6 +18,7 @@ import { index as membersIndex } from '@/routes/members';
 import { index as inventoryIndex } from '@/routes/inventory';
 import { index as posIndex } from '@/routes/pos';
 import { index as pendingTransactionsIndex } from '@/routes/pending-transactions';
+import { index as reportsIndex } from '@/routes/reports';
 import { type NavItem } from '@/types';
 
 import AppLogo from './app-logo';
@@ -47,6 +48,11 @@ const mainNavItems: NavItem[] = [
         title: 'Pending Transactions',
         href: pendingTransactionsIndex(),
         icon: Clock,
+    },
+    {
+        title: 'Reports',
+        href: reportsIndex(),
+        icon: BookOpen,
     },
 ];
 

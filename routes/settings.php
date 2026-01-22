@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\RolePermissionController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use App\Http\Controllers\Settings\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -36,5 +37,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('settings/users', [UserManagementController::class, 'store'])->name('users.store');
         Route::put('settings/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::delete('settings/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+        // Roles and Permissions Management
+        Route::get('settings/roles-permissions', [RolePermissionController::class, 'index'])->name('roles-permissions.index');
+        Route::post('settings/roles-permissions', [RolePermissionController::class, 'store'])->name('roles-permissions.store');
+        Route::put('settings/roles-permissions/{role}', [RolePermissionController::class, 'update'])->name('roles-permissions.update');
+        Route::delete('settings/roles-permissions/{role}', [RolePermissionController::class, 'destroy'])->name('roles-permissions.destroy');
+        Route::post('settings/roles-permissions/assign', [RolePermissionController::class, 'assignRole'])->name('roles-permissions.assign');
+        Route::post('settings/roles-permissions/remove', [RolePermissionController::class, 'removeRole'])->name('roles-permissions.remove');
     });
 });
