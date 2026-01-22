@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeeder::class);
         $this->call(MemberSeeder::class);
         $this->call(ProductSeeder::class);
+        $this->call(PendingSaleSeeder::class);
 
         $user = User::factory()->create([
             'name' => 'Test User',

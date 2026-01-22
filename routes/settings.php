@@ -30,9 +30,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
 
-    // User Management Routes (Admin only)
-    Route::get('settings/users', [UserManagementController::class, 'index'])->name('users.index');
-    Route::post('settings/users', [UserManagementController::class, 'store'])->name('users.store');
-    Route::put('settings/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
-    Route::delete('settings/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    // User Management Routes (Super Admin only)
+    Route::middleware('require.superadmin')->group(function () {
+        Route::get('settings/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::post('settings/users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::put('settings/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+        Route::delete('settings/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    });
 });
