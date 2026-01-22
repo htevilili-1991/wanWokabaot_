@@ -192,7 +192,22 @@ class MemberSeeder extends Seeder
         ];
 
         foreach ($members as $member) {
-            Member::create($member);
+            $createdMember = Member::create($member);
+
+            // Create a user account for each member so they can log in
+            $user = \App\Models\User::firstOrCreate(
+                ['email' => $member['email']],
+                [
+                    'name' => $member['name'],
+                    'password' => \Illuminate\Support\Facades\Hash::make('password123'), // Default password
+                    'email_verified_at' => now(),
+                ]
+            );
+
+            // Assign Member role
+            if (! $user->hasRole('Member')) {
+                $user->assignRole('Member');
+            }
         }
     }
 }

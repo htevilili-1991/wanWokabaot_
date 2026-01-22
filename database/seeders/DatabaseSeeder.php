@@ -19,13 +19,21 @@ class DatabaseSeeder extends Seeder
         $this->call(MemberSeeder::class);
         $this->call(ProductSeeder::class);
         $this->call(PendingSaleSeeder::class);
+        $this->call(UserRoleSeeder::class);
 
-        $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Create Super Admin user if it doesn't exist
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'admin@wanwokabaot.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => \Illuminate\Support\Facades\Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        // Assign Super Admin role to the test user
-        $user->assignRole('Super Admin');
+        // Assign Super Admin role
+        if (! $superAdmin->hasRole('Super Admin')) {
+            $superAdmin->assignRole('Super Admin');
+        }
     }
 }

@@ -116,7 +116,7 @@ class PendingSale extends Model
     {
         // Validate stock availability
         foreach ($this->items as $item) {
-            $product = Product::find($item['product_id']);
+            $product = Product::find($item['id']);
             if (! $product || $product->current_stock < $item['quantity']) {
                 return false; // Insufficient stock
             }
@@ -129,7 +129,7 @@ class PendingSale extends Model
 
         // Deduct stock
         foreach ($this->items as $item) {
-            $product = Product::find($item['product_id']);
+            $product = Product::find($item['id']);
             $product->decrement('current_stock', $item['quantity']);
         }
 

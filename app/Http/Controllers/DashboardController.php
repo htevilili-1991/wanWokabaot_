@@ -15,8 +15,12 @@ class DashboardController extends Controller
         try {
             $kpis = $this->getKPIs();
 
+            // Debug: Log KPIs for troubleshooting
+            \Log::info('Dashboard KPIs calculated:', $kpis);
+
             // Debug: Ensure kpis is not null and has expected structure
             if (! $kpis || ! is_array($kpis)) {
+                \Log::warning('KPIs is null or not an array, using defaults');
                 $kpis = [
                     'total_members' => 0,
                     'active_members' => 0,
@@ -38,6 +42,10 @@ class DashboardController extends Controller
                 'topProducts' => $this->getTopProducts(),
             ]);
         } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Dashboard controller error: '.$e->getMessage());
+            \Log::error('Dashboard error stack trace: '.$e->getTraceAsString());
+
             // If there's any error, return default data
             return inertia('dashboard', [
                 'kpis' => [
@@ -77,7 +85,7 @@ class DashboardController extends Controller
                 ->whereDate('completed_at', today())
                 ->sum('subtotal') ?? 0;
 
-            return [
+            $result = [
                 'total_members' => $totalMembers,
                 'active_members' => $activeMembers,
                 'total_products' => $totalProducts,
@@ -86,7 +94,13 @@ class DashboardController extends Controller
                 'total_unpaid_amount' => $totalUnpaidAmount,
                 'today_sales' => $todaySales,
             ];
+
+            \Log::info('KPIs calculated successfully:', $result);
+
+            return $result;
         } catch (\Exception $e) {
+            \Log::error('getKPIs error: '.$e->getMessage());
+
             // Return default values if database is not available
             return [
                 'total_members' => 0,

@@ -81,6 +81,111 @@ indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 index.form = indexForm
 
 /**
+* @see \App\Http\Controllers\InventoryController::show
+* @see app/Http/Controllers/InventoryController.php:81
+* @route '/inventory/{product}'
+*/
+export const show = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show.url(args, options),
+    method: 'get',
+})
+
+show.definition = {
+    methods: ["get","head"],
+    url: '/inventory/{product}',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\InventoryController::show
+* @see app/Http/Controllers/InventoryController.php:81
+* @route '/inventory/{product}'
+*/
+show.url = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { product: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { product: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            product: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        product: typeof args.product === 'object'
+        ? args.product.id
+        : args.product,
+    }
+
+    return show.definition.url
+            .replace('{product}', parsedArgs.product.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\InventoryController::show
+* @see app/Http/Controllers/InventoryController.php:81
+* @route '/inventory/{product}'
+*/
+show.get = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\InventoryController::show
+* @see app/Http/Controllers/InventoryController.php:81
+* @route '/inventory/{product}'
+*/
+show.head = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: show.url(args, options),
+    method: 'head',
+})
+
+/**
+* @see \App\Http\Controllers\InventoryController::show
+* @see app/Http/Controllers/InventoryController.php:81
+* @route '/inventory/{product}'
+*/
+const showForm = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: show.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\InventoryController::show
+* @see app/Http/Controllers/InventoryController.php:81
+* @route '/inventory/{product}'
+*/
+showForm.get = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: show.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\InventoryController::show
+* @see app/Http/Controllers/InventoryController.php:81
+* @route '/inventory/{product}'
+*/
+showForm.head = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: show.url(args, {
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'HEAD',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'get',
+})
+
+show.form = showForm
+
+/**
 * @see \App\Http\Controllers\InventoryController::create
 * @see app/Http/Controllers/InventoryController.php:53
 * @route '/inventory/create'
@@ -218,111 +323,6 @@ storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => (
 store.form = storeForm
 
 /**
-* @see \App\Http\Controllers\InventoryController::show
-* @see app/Http/Controllers/InventoryController.php:81
-* @route '/inventory/{product}'
-*/
-export const show = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: show.url(args, options),
-    method: 'get',
-})
-
-show.definition = {
-    methods: ["get","head"],
-    url: '/inventory/{product}',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\InventoryController::show
-* @see app/Http/Controllers/InventoryController.php:81
-* @route '/inventory/{product}'
-*/
-show.url = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { product: args }
-    }
-
-    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-        args = { product: args.id }
-    }
-
-    if (Array.isArray(args)) {
-        args = {
-            product: args[0],
-        }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-        product: typeof args.product === 'object'
-        ? args.product.id
-        : args.product,
-    }
-
-    return show.definition.url
-            .replace('{product}', parsedArgs.product.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\InventoryController::show
-* @see app/Http/Controllers/InventoryController.php:81
-* @route '/inventory/{product}'
-*/
-show.get = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: show.url(args, options),
-    method: 'get',
-})
-
-/**
-* @see \App\Http\Controllers\InventoryController::show
-* @see app/Http/Controllers/InventoryController.php:81
-* @route '/inventory/{product}'
-*/
-show.head = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: show.url(args, options),
-    method: 'head',
-})
-
-/**
-* @see \App\Http\Controllers\InventoryController::show
-* @see app/Http/Controllers/InventoryController.php:81
-* @route '/inventory/{product}'
-*/
-const showForm = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-    action: show.url(args, options),
-    method: 'get',
-})
-
-/**
-* @see \App\Http\Controllers\InventoryController::show
-* @see app/Http/Controllers/InventoryController.php:81
-* @route '/inventory/{product}'
-*/
-showForm.get = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-    action: show.url(args, options),
-    method: 'get',
-})
-
-/**
-* @see \App\Http\Controllers\InventoryController::show
-* @see app/Http/Controllers/InventoryController.php:81
-* @route '/inventory/{product}'
-*/
-showForm.head = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-    action: show.url(args, {
-        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-            _method: 'HEAD',
-            ...(options?.query ?? options?.mergeQuery ?? {}),
-        }
-    }),
-    method: 'get',
-})
-
-show.form = showForm
-
-/**
 * @see \App\Http\Controllers\InventoryController::edit
 * @see app/Http/Controllers/InventoryController.php:91
 * @route '/inventory/{product}/edit'
@@ -438,9 +438,9 @@ export const update = (args: { product: number | { id: number } } | [product: nu
 })
 
 update.definition = {
-    methods: ["put","patch"],
+    methods: ["put"],
     url: '/inventory/{product}',
-} satisfies RouteDefinition<["put","patch"]>
+} satisfies RouteDefinition<["put"]>
 
 /**
 * @see \App\Http\Controllers\InventoryController::update
@@ -490,16 +490,6 @@ update.put = (args: { product: number | { id: number } } | [product: number | { 
 * @see app/Http/Controllers/InventoryController.php:101
 * @route '/inventory/{product}'
 */
-update.patch = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: update.url(args, options),
-    method: 'patch',
-})
-
-/**
-* @see \App\Http\Controllers\InventoryController::update
-* @see app/Http/Controllers/InventoryController.php:101
-* @route '/inventory/{product}'
-*/
 const updateForm = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
     action: update.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
@@ -519,21 +509,6 @@ updateForm.put = (args: { product: number | { id: number } } | [product: number 
     action: update.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
             _method: 'PUT',
-            ...(options?.query ?? options?.mergeQuery ?? {}),
-        }
-    }),
-    method: 'post',
-})
-
-/**
-* @see \App\Http\Controllers\InventoryController::update
-* @see app/Http/Controllers/InventoryController.php:101
-* @route '/inventory/{product}'
-*/
-updateForm.patch = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-    action: update.url(args, {
-        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-            _method: 'PATCH',
             ...(options?.query ?? options?.mergeQuery ?? {}),
         }
     }),
@@ -634,9 +609,9 @@ destroy.form = destroyForm
 
 const inventory = {
     index: Object.assign(index, index),
+    show: Object.assign(show, show),
     create: Object.assign(create, create),
     store: Object.assign(store, store),
-    show: Object.assign(show, show),
     edit: Object.assign(edit, edit),
     update: Object.assign(update, update),
     destroy: Object.assign(destroy, destroy),
