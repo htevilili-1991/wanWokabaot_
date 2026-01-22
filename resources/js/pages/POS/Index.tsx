@@ -1,6 +1,6 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useState, useMemo, useEffect } from 'react';
-import { Search, ShoppingCart, User, CreditCard, Clock, Save, CheckCircle, Plus, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Search, ShoppingCart, User, CreditCard, Clock, Save, CheckCircle, Plus, X, Maximize, Minimize } from 'lucide-react';
 
 import Heading from '@/components/heading';
 import AppLayout from '@/layouts/app-layout';
@@ -61,6 +61,8 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [carts, setCarts] = useState<Cart[]>([]);
     const [activeCartId, setActiveCartId] = useState<string | null>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const posContainerRef = useRef<HTMLDivElement>(null);
 
     // Computed values for active cart
     const activeCart = carts.find(cart => cart.id === activeCartId) || null;
@@ -328,17 +330,66 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
         return `${numAmount.toFixed(2)} VT`;
     };
 
+    // Fullscreen functionality
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            // Target the POS content container instead of the entire document
+            if (posContainerRef.current) {
+                posContainerRef.current.requestFullscreen().then(() => {
+                    setIsFullscreen(true);
+                }).catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                });
+            }
+        } else {
+            document.exitFullscreen().then(() => {
+                setIsFullscreen(false);
+            }).catch(err => {
+                console.error('Error attempting to exit fullscreen:', err);
+            });
+        }
+    };
+
+    // Listen for fullscreen changes
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            // Check if our POS container is in fullscreen
+            setIsFullscreen(document.fullscreenElement === posContainerRef.current);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Point of Sale" />
 
-            <div className="space-y-6 p-6">
+            <div ref={posContainerRef} className="space-y-6 p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <Heading
                         title="Point of Sale"
                         description="Process sales and manage transactions"
                     />
+                    <Button
+                        onClick={toggleFullscreen}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                    >
+                        {isFullscreen ? (
+                            <>
+                                <Minimize className="h-4 w-4" />
+                                Exit Fullscreen
+                            </>
+                        ) : (
+                            <>
+                                <Maximize className="h-4 w-4" />
+                                Fullscreen
+                            </>
+                        )}
+                    </Button>
                 </div>
 
                 {/* Cart Management */}
