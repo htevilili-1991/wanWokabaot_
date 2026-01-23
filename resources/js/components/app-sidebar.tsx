@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Clock, CreditCard, Folder, LayoutGrid, Package, Users } from 'lucide-react';
+import { BookOpen, Clock, CreditCard, DollarSign, Folder, LayoutGrid, Package, Users } from 'lucide-react';
 
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -19,6 +19,7 @@ import { index as inventoryIndex } from '@/routes/inventory';
 import { index as posIndex } from '@/routes/pos';
 import { index as pendingTransactionsIndex } from '@/routes/pending-transactions';
 import { index as reportsIndex } from '@/routes/reports';
+import { index as dividendsIndex, member as dividendsMember } from '@/routes/dividends';
 import { type NavItem, type SharedData, type User } from '@/types';
 
 import AppLogo from './app-logo';
@@ -61,6 +62,18 @@ const allMainNavItems: Array<NavItem & { permissions?: string[] }> = [
         icon: BookOpen,
         permissions: ['view dashboard'], // Reports require dashboard access
     },
+    {
+        title: 'Dividends',
+        href: dividendsIndex(),
+        icon: DollarSign,
+        permissions: ['view dividends'], // Admin/Treasurer dividend management
+    },
+    {
+        title: 'My Dividends',
+        href: dividendsMember(),
+        icon: DollarSign,
+        permissions: ['view dividends'], // Member dividend view
+    },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -96,7 +109,8 @@ function hasPermission(user: User | undefined, requiredPermissions: string[]): b
             'view dashboard', 'view members', 'create members', 'edit members', 'delete members',
             'view inventory', 'create inventory', 'edit inventory', 'delete inventory',
             'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
-            'view settings', 'edit profile'
+            'view settings', 'edit profile',
+            'view dividends', 'create dividends', 'edit dividends', 'delete dividends', 'calculate dividends', 'approve dividends', 'pay dividends'
         ],
         'Cashier': [
             'view dashboard', 'view members', 'edit members',
@@ -107,11 +121,12 @@ function hasPermission(user: User | undefined, requiredPermissions: string[]): b
         'Treasurer': [
             'view dashboard', 'view members', 'edit members',
             'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
-            'view settings', 'edit profile'
+            'view settings', 'edit profile',
+            'view dividends', 'create dividends', 'edit dividends', 'calculate dividends', 'approve dividends', 'pay dividends'
         ],
         'Member': [
             'view dashboard', 'view members', 'view inventory', 'view pending transactions',
-            'view settings', 'edit profile'
+            'view settings', 'edit profile', 'view dividends'
         ],
     };
 

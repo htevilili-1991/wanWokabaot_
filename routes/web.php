@@ -94,6 +94,20 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
     });
 });
 
+// Member dividends (accessible by all authenticated users)
+Route::middleware(['auth'])->group(function () {
+    Route::get('my-dividends', [App\Http\Controllers\DividendController::class, 'memberDividends'])->name('dividends.member');
+});
+
+// Dividend management (Admin/Treasurer only)
+Route::middleware(['auth', 'restrict.settings'])->group(function () {
+    Route::resource('dividends', App\Http\Controllers\DividendController::class);
+    Route::post('dividends/{dividendPeriod}/calculate', [App\Http\Controllers\DividendController::class, 'calculate'])->name('dividends.calculate');
+    Route::post('dividends/{dividendPeriod}/approve', [App\Http\Controllers\DividendController::class, 'approve'])->name('dividends.approve');
+    Route::post('dividend-calculations/{calculation}/approve', [App\Http\Controllers\DividendController::class, 'approveCalculation'])->name('dividend-calculations.approve');
+    Route::post('dividend-calculations/{calculation}/pay', [App\Http\Controllers\DividendController::class, 'payDividend'])->name('dividend-calculations.pay');
+});
+
 // Reports (accessible by all authenticated users)
 Route::middleware(['auth'])->group(function () {
     Route::get('reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports.index');

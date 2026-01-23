@@ -35,6 +35,14 @@ class Member extends Model
     }
 
     /**
+     * Get the member's dividend calculations
+     */
+    public function dividendCalculations(): HasMany
+    {
+        return $this->hasMany(DividendCalculation::class);
+    }
+
+    /**
      * Get the total unpaid amount from all pending transactions (formatted as string)
      */
     public function getUnpaidTotalAttribute(): string
