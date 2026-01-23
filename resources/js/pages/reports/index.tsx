@@ -54,26 +54,49 @@ export default function Reports() {
 
     const form = useForm({
         type: '',
-        format: 'csv',
+        format: 'pdf',
         start_date: '',
         end_date: '',
         period: 'month',
     });
 
     const handleGenerateReport = (reportType: string, format: string) => {
-        form.setData({
-            type: reportType,
-            format: format,
-            start_date: selectedPeriod === 'custom' ? form.data.start_date : '',
-            end_date: selectedPeriod === 'custom' ? form.data.end_date : '',
-            period: selectedPeriod,
+        // Create a hidden form and submit it to trigger file download
+        const formElement = document.createElement('form');
+        formElement.method = 'POST';
+        formElement.action = '/reports/generate';
+
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken.getAttribute('content') || '';
+            formElement.appendChild(csrfInput);
+        }
+
+        // Add form data
+        const inputs = [
+            { name: 'type', value: reportType },
+            { name: 'format', value: format },
+            { name: 'start_date', value: selectedPeriod === 'custom' ? form.data.start_date : '' },
+            { name: 'end_date', value: selectedPeriod === 'custom' ? form.data.end_date : '' },
+            { name: 'period', value: selectedPeriod },
+        ];
+
+        inputs.forEach(input => {
+            const inputElement = document.createElement('input');
+            inputElement.type = 'hidden';
+            inputElement.name = input.name;
+            inputElement.value = input.value;
+            formElement.appendChild(inputElement);
         });
 
-        form.post('/reports/generate', {
-            onSuccess: () => {
-                // File download will be handled automatically
-            },
-        });
+        // Submit the form
+        document.body.appendChild(formElement);
+        formElement.submit();
+        document.body.removeChild(formElement);
     };
 
     const handlePeriodChange = (period: string) => {
@@ -171,21 +194,12 @@ export default function Reports() {
                             <CardContent>
                                 <div className="flex gap-2">
                                     <Button
-                                        onClick={() => handleGenerateReport(reportType.id, 'csv')}
+                                        onClick={() => handleGenerateReport(reportType.id, 'pdf')}
                                         disabled={form.processing}
                                         className="flex-1"
                                     >
                                         <Download className="mr-2 h-4 w-4" />
-                                        CSV
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleGenerateReport(reportType.id, 'pdf')}
-                                        disabled={form.processing}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        <FileText className="mr-2 h-4 w-4" />
-                                        HTML
+                                        Generate PDF Report
                                     </Button>
                                 </div>
                             </CardContent>
@@ -210,18 +224,12 @@ export default function Reports() {
                                 </ul>
                             </div>
                             <div>
-                                <h4 className="font-medium mb-2">Export Formats</h4>
+                                <h4 className="font-medium mb-2">Export Format</h4>
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="secondary">CSV</Badge>
+                                        <Badge variant="default">PDF</Badge>
                                         <span className="text-sm text-muted-foreground">
-                                            Spreadsheet compatible, can be opened in Excel
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="outline">HTML</Badge>
-                                        <span className="text-sm text-muted-foreground">
-                                            Formatted report, can be printed or saved as PDF
+                                            Professional PDF report, ready for printing and sharing
                                         </span>
                                     </div>
                                 </div>

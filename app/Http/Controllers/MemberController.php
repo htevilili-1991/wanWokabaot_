@@ -15,7 +15,7 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Member::query();
+        $query = Member::with('pendingSales'); // Load pending sales for unpaid total calculation
 
         // Handle search
         if ($request->has('search') && ! empty($request->search)) {

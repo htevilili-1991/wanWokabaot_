@@ -79,19 +79,14 @@ const footerNavItems: NavItem[] = [
 // Helper function to check if user has required permissions
 function hasPermission(user: User | undefined, requiredPermissions: string[]): boolean {
     if (!user || !user.roles) {
-        console.log('User or roles not found:', user);
         return false;
     }
 
     // Super Admin has all permissions
     const isSuperAdmin = user.roles.some(role => role.name === 'Super Admin');
     if (isSuperAdmin) {
-        console.log('User is Super Admin, granting all permissions');
         return true;
     }
-
-    console.log('User roles:', user.roles.map(r => r.name));
-    console.log('Required permissions:', requiredPermissions);
 
     // Check if user has any of the required permissions
     // Note: In a real implementation, you'd check against actual permissions,
@@ -120,13 +115,10 @@ function hasPermission(user: User | undefined, requiredPermissions: string[]): b
         ],
     };
 
-    const hasPerm = user.roles.some(role => {
+    return user.roles.some(role => {
         const rolePerms = rolePermissions[role.name] || [];
         return requiredPermissions.some(perm => rolePerms.includes(perm));
     });
-
-    console.log('Permission check result:', hasPerm);
-    return hasPerm;
 }
 
 export function AppSidebar() {

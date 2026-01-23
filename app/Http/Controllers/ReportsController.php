@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use App\Models\PendingSale;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response;
 
 class ReportsController extends Controller
 {
@@ -20,7 +20,7 @@ class ReportsController extends Controller
     {
         $request->validate([
             'type' => 'required|string|in:sales,inventory,members,transactions',
-            'format' => 'required|string|in:csv,pdf',
+            'format' => 'required|string|in:pdf',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'period' => 'nullable|string|in:week,month,year,all',
@@ -32,11 +32,7 @@ class ReportsController extends Controller
         $method = 'generate'.ucfirst($request->type).'Report';
         $data = $this->$method($startDate, $endDate);
 
-        if ($request->format === 'csv') {
-            return $this->exportCsv($data, $request->type, $startDate, $endDate);
-        } else {
-            return $this->exportPdf($data, $request->type, $startDate, $endDate);
-        }
+        return $this->exportPdf($data, $request->type, $startDate, $endDate);
     }
 
     private function generateSalesReport($startDate, $endDate)
@@ -166,49 +162,15 @@ class ReportsController extends Controller
         ];
     }
 
-    private function exportCsv($data, $type, $startDate, $endDate)
-    {
-        $filename = $type.'_report_'.($startDate ? $startDate->format('Y-m-d') : 'all').'_to_'.($endDate ? $endDate->format('Y-m-d') : 'all').'.csv';
-
-        $callback = function () use ($data) {
-            $file = fopen('php://output', 'w');
-
-            // Write headers
-            fputcsv($file, $data['headers']);
-
-            // Write data rows
-            foreach ($data['rows'] as $row) {
-                fputcsv($file, $row);
-            }
-
-            // Write summary
-            fputcsv($file, []); // Empty row
-            fputcsv($file, ['SUMMARY']);
-            foreach ($data['summary'] as $key => $value) {
-                fputcsv($file, [$key, $value]);
-            }
-
-            fclose($file);
-        };
-
-        return Response::stream($callback, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-        ]);
-    }
-
     private function exportPdf($data, $type, $startDate, $endDate)
     {
-        $filename = $type.'_report_'.($startDate ? $startDate->format('Y-m-d') : 'all').'_to_'.($endDate ? $endDate->format('Y-m-d') : 'all').'.html';
+        $filename = $type.'_report_'.($startDate ? $startDate->format('Y-m-d') : 'all').'_to_'.($endDate ? $endDate->format('Y-m-d') : 'all').'.pdf';
 
-        // For now, return HTML that can be saved as PDF
-        // In production, you would use a proper PDF library
         $html = $this->generateHtmlReport($data, $type, $startDate, $endDate);
 
-        return Response::make($html, 200, [
-            'Content-Type' => 'text/html',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-        ]);
+        $pdf = Pdf::loadHTML($html);
+
+        return $pdf->download($filename);
     }
 
     private function generateHtmlReport($data, $type, $startDate, $endDate)
@@ -223,23 +185,141 @@ class ReportsController extends Controller
         <html>
         <head>
             <title>'.$title.'</title>
+            <meta charset="UTF-8">
             <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                h1, h2 { color: #333; }
-                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                .summary { background-color: #e8f4fd; padding: 15px; border-radius: 5px; }
-                .summary h3 { margin-top: 0; }
-                .summary p { margin: 5px 0; }
+                @page { margin: 1in; }
+                body {
+                    font-family: "DejaVu Sans", "Arial", sans-serif;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    color: #333;
+                    margin: 0;
+                    padding: 0;
+                }
+                .header {
+                    text-align: center;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }
+                .header h1 {
+                    color: #333;
+                    font-size: 24px;
+                    margin: 0 0 10px 0;
+                    font-weight: bold;
+                }
+                .header p {
+                    margin: 5px 0;
+                    color: #666;
+                }
+                .info-table {
+                    width: 100%;
+                    margin-bottom: 30px;
+                    border-collapse: collapse;
+                }
+                .info-table td {
+                    padding: 5px 0;
+                    border: none;
+                }
+                .info-table td:first-child {
+                    font-weight: bold;
+                    width: 120px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    font-size: 11px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px 4px;
+                    text-align: left;
+                    vertical-align: top;
+                }
+                th {
+                    background-color: #f8f9fa;
+                    font-weight: bold;
+                    color: #333;
+                }
+                tr:nth-child(even) {
+                    background-color: #f8f9fa;
+                }
+                .summary {
+                    background-color: #e8f4fd;
+                    padding: 20px;
+                    border-radius: 5px;
+                    margin-top: 30px;
+                    border: 1px solid #b3d9ff;
+                }
+                .summary h3 {
+                    margin-top: 0;
+                    color: #0066cc;
+                    font-size: 16px;
+                    border-bottom: 1px solid #b3d9ff;
+                    padding-bottom: 10px;
+                }
+                .summary-grid {
+                    display: table;
+                    width: 100%;
+                }
+                .summary-row {
+                    display: table-row;
+                }
+                .summary-cell {
+                    display: table-cell;
+                    padding: 5px 10px;
+                    vertical-align: top;
+                }
+                .summary-cell:first-child {
+                    font-weight: bold;
+                    width: 200px;
+                }
+                .footer {
+                    margin-top: 40px;
+                    text-align: center;
+                    font-size: 10px;
+                    color: #666;
+                    border-top: 1px solid #ddd;
+                    padding-top: 20px;
+                }
+                .company-info {
+                    text-align: center;
+                    margin-bottom: 20px;
+                    font-size: 14px;
+                    color: #666;
+                }
             </style>
         </head>
         <body>
-            <h1>'.$title.'</h1>
-            <p><strong>Period:</strong> '.$period.'</p>
-            <p><strong>Generated:</strong> '.now()->format('M d, Y H:i').'</p>
+            <div class="company-info">
+                <h2>Wan Wokabaot Cooperative</h2>
+                <p>Retail Management System Report</p>
+            </div>
 
-            <h2>Data</h2>
+            <div class="header">
+                <h1>'.$title.'</h1>
+                <table class="info-table">
+                    <tr>
+                        <td>Report Type:</td>
+                        <td>'.ucfirst($type).'</td>
+                    </tr>
+                    <tr>
+                        <td>Period:</td>
+                        <td>'.$period.'</td>
+                    </tr>
+                    <tr>
+                        <td>Generated:</td>
+                        <td>'.now()->format('M d, Y H:i:s').'</td>
+                    </tr>
+                    <tr>
+                        <td>Total Records:</td>
+                        <td>'.count($data['rows']).'</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h2 style="color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Report Data</h2>
             <table>
                 <thead>
                     <tr>';
@@ -253,7 +333,7 @@ class ReportsController extends Controller
                 </thead>
                 <tbody>';
 
-        foreach ($data['rows'] as $row) {
+        foreach ($data['rows'] as $index => $row) {
             $html .= '<tr>';
             foreach ($row as $cell) {
                 $html .= '<td>'.$cell.'</td>';
@@ -266,13 +346,24 @@ class ReportsController extends Controller
             </table>
 
             <div class="summary">
-                <h3>Summary</h3>';
+                <h3>Report Summary</h3>
+                <div class="summary-grid">';
 
         foreach ($data['summary'] as $key => $value) {
-            $html .= '<p><strong>'.$key.':</strong> '.$value.'</p>';
+            $html .= '
+                    <div class="summary-row">
+                        <div class="summary-cell">'.$key.':</div>
+                        <div class="summary-cell"><strong>'.$value.'</strong></div>
+                    </div>';
         }
 
         $html .= '
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>This report was generated automatically by the Wan Wokabaot Retail Management System.</p>
+                <p>Confidential - For internal use only.</p>
             </div>
         </body>
         </html>';

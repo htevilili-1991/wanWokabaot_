@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Member extends Model
 {
@@ -25,10 +27,22 @@ class Member extends Model
     ];
 
     /**
-     * Get the unpaid total formatted as a string.
+     * Get the member's pending sales
      */
-    public function getUnpaidTotalAttribute()
+    public function pendingSales(): HasMany
     {
-        return number_format($this->balance, 2);
+        return $this->hasMany(PendingSale::class);
+    }
+
+    /**
+     * Get the total unpaid amount from all pending transactions (formatted as string)
+     */
+    public function getUnpaidTotalAttribute(): string
+    {
+        $total = $this->pendingSales()
+            ->where('status', 'pending')
+            ->sum(\DB::raw('subtotal - total_paid'));
+
+        return number_format($total, 2);
     }
 }
