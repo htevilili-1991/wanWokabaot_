@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Plus, Calculator, Eye, Edit, Trash2 } from 'lucide-react';
 import { index, create } from '@/routes/dividends';
+import { dashboard } from '@/routes';
 import AppLayout from '@/layouts/app-layout';
 
 interface DividendPeriod {
@@ -37,7 +38,7 @@ interface DividendPeriodsPageProps {
 
 export default function DividendPeriodsIndex({ dividendPeriods, filters }: DividendPeriodsPageProps) {
     const breadcrumbs = [
-        { title: 'Dashboard', href: route('dashboard') },
+        { title: 'Dashboard', href: dashboard() },
         { title: 'Dividends', href: index() },
     ];
 

@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save } from 'lucide-react';
-import { index } from '@/routes/dividends';
+import { index, store } from '@/routes/dividends';
+import { dashboard } from '@/routes';
 import AppLayout from '@/layouts/app-layout';
 
 export default function CreateDividendPeriod() {
     const breadcrumbs = [
-        { title: 'Dashboard', href: route('dashboard') },
+        { title: 'Dashboard', href: dashboard() },
         { title: 'Dividends', href: index() },
-        { title: 'Create Period', href: route('dividends.create') },
+        { title: 'Create Period', href: '' },
     ];
 
     const { data, setData, post, processing, errors } = useForm({
@@ -27,7 +27,7 @@ export default function CreateDividendPeriod() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('dividends.store'));
+        post(store());
     };
 
     return (
@@ -139,10 +139,12 @@ export default function CreateDividendPeriod() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="notes">Notes (Optional)</Label>
-                                <Textarea
+                                <textarea
                                     id="notes"
+                                    name="notes"
                                     value={data.notes}
                                     onChange={(e) => setData('notes', e.target.value)}
+                                    className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     placeholder="Additional notes about this dividend period..."
                                     rows={3}
                                 />

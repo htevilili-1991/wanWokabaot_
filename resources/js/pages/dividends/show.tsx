@@ -8,9 +8,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Calculator, CheckCircle, CreditCard, DollarSign, Eye, User } from 'lucide-react';
-import { index, edit } from '@/routes/dividends';
+import { index, edit, calculate, approve } from '@/routes/dividends';
+import { dashboard } from '@/routes';
 import AppLayout from '@/layouts/app-layout';
 
 interface DividendCalculation {
@@ -58,9 +58,9 @@ interface DividendPeriodShowProps {
 
 export default function DividendPeriodShow({ dividendPeriod, calculations }: DividendPeriodShowProps) {
     const breadcrumbs = [
-        { title: 'Dashboard', href: route('dashboard') },
+        { title: 'Dashboard', href: dashboard() },
         { title: 'Dividends', href: index() },
-        { title: dividendPeriod.name, href: route('dividends.show', dividendPeriod.id) },
+        { title: dividendPeriod.name, href: '' },
     ];
 
     const [selectedCalculation, setSelectedCalculation] = useState<DividendCalculation | null>(null);
@@ -100,7 +100,7 @@ export default function DividendPeriodShow({ dividendPeriod, calculations }: Div
 
     const handleCalculate = () => {
         if (confirm('Calculate dividends for all members based on their purchases during this period?')) {
-            router.post(route('dividends.calculate', dividendPeriod.id), {}, {
+            router.post(calculate(dividendPeriod.id), {}, {
                 onSuccess: () => {
                     window.location.reload();
                 }
@@ -110,7 +110,7 @@ export default function DividendPeriodShow({ dividendPeriod, calculations }: Div
 
     const handleApprove = () => {
         if (confirm('Approve this dividend period for payout?')) {
-            router.post(route('dividends.approve', dividendPeriod.id), {}, {
+            router.post(approve(dividendPeriod.id), {}, {
                 onSuccess: () => {
                     window.location.reload();
                 }
@@ -390,9 +390,11 @@ export default function DividendPeriodShow({ dividendPeriod, calculations }: Div
 
                                                                     <div className="space-y-2">
                                                                         <Label htmlFor="notes">Notes (Optional)</Label>
-                                                                        <Textarea
+                                                                        <textarea
+                                                                            name="notes"
                                                                             value={paymentData.notes}
                                                                             onChange={(e) => setPaymentData(prev => ({ ...prev, notes: e.target.value }))}
+                                                                            className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                                                             rows={3}
                                                                         />
                                                                     </div>

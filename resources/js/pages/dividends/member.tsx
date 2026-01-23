@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DollarSign, Calendar, TrendingUp } from 'lucide-react';
+import { member } from '@/routes/dividends';
+import { dashboard } from '@/routes';
 import AppLayout from '@/layouts/app-layout';
 
 interface Dividend {
@@ -39,8 +41,8 @@ interface MemberDividendsProps {
 
 export default function MemberDividends({ dividends, message }: MemberDividendsProps) {
     const breadcrumbs = [
-        { title: 'Dashboard', href: route('dashboard') },
-        { title: 'My Dividends', href: route('dividends.member') },
+        { title: 'Dashboard', href: dashboard() },
+        { title: 'My Dividends', href: member() },
     ];
 
     const getStatusBadge = (status: string) => {
@@ -104,12 +106,12 @@ export default function MemberDividends({ dividends, message }: MemberDividendsP
                         </CardContent>
                     </Card>
                 </div>
-            </Layout>
+            </AppLayout>
         );
     }
 
     return (
-        <Layout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="My Dividends" />
 
             <div className="space-y-6">
@@ -258,6 +260,6 @@ export default function MemberDividends({ dividends, message }: MemberDividendsP
                     </Card>
                 )}
             </div>
-        </Layout>
+        </AppLayout>
     );
 }
