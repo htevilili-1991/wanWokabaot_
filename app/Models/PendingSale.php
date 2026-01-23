@@ -19,6 +19,8 @@ class PendingSale extends Model
         'completed_by',
         'items',
         'subtotal',
+        'total_paid',
+        'payment_history',
         'payment_method',
         'status',
         'completed_at',
@@ -28,6 +30,8 @@ class PendingSale extends Model
     protected $casts = [
         'items' => 'array',
         'subtotal' => 'decimal:2',
+        'total_paid' => 'decimal:2',
+        'payment_history' => 'array',
         'completed_at' => 'datetime',
     ];
 
@@ -162,5 +166,68 @@ class PendingSale extends Model
     public function getMemberNameAttribute(): string
     {
         return $this->member ? $this->member->name : 'Walk-in Customer';
+    }
+
+    /**
+     * Get remaining balance to be paid
+     */
+    public function getRemainingBalanceAttribute(): float
+    {
+        return $this->subtotal - $this->total_paid;
+    }
+
+    /**
+     * Check if the sale is fully paid
+     */
+    public function isFullyPaid(): bool
+    {
+        return $this->remaining_balance <= 0;
+    }
+
+    /**
+     * Add a payment to this pending sale
+     */
+    public function addPayment(float $amount, string $paymentMethod = 'cash', ?string $notes = null): bool
+    {
+        if ($amount <= 0 || $amount > $this->remaining_balance) {
+            return false;
+        }
+
+        $paymentHistory = $this->payment_history ?? [];
+        $paymentHistory[] = [
+            'amount' => $amount,
+            'payment_method' => $paymentMethod,
+            'paid_at' => now()->toISOString(),
+            'notes' => $notes,
+        ];
+
+        $this->update([
+            'total_paid' => $this->total_paid + $amount,
+            'payment_history' => $paymentHistory,
+        ]);
+
+        // Auto-complete if fully paid
+        if ($this->isFullyPaid()) {
+            $this->completeSale();
+        }
+
+        return true;
+    }
+
+    /**
+     * Complete the sale when fully paid
+     */
+    private function completeSale(): void
+    {
+        $this->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+            'payment_method' => 'multiple', // Indicates multiple payments
+        ]);
+
+        // If member exists, update their total spent
+        if ($this->member) {
+            $this->member->increment('total_spent', $this->subtotal);
+        }
     }
 }

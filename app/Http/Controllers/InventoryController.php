@@ -14,7 +14,12 @@ class InventoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::query();
+        $query = Product::with('location');
+
+        // Restrict to user's assigned locations if not Admin
+        if ($request->has('assigned_location_ids')) {
+            $query->whereIn('location_id', $request->assigned_location_ids);
+        }
 
         // Handle search
         if ($request->has('search') && ! empty($request->search)) {
@@ -70,7 +75,22 @@ class InventoryController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
-        Product::create($validated);
+        $user = $request->user();
+        $locationId = null;
+
+        if ($user->hasRole('Admin')) {
+            // Admin can choose location, default to their primary location
+            $locationId = $user->primaryLocation()?->id ?? $user->locations()->first()?->id;
+        } else {
+            // For Cashiers/Treasurers, use their primary location
+            $locationId = $user->primaryLocation()?->id ?? $user->locations()->first()?->id;
+        }
+
+        if (!$locationId) {
+            return Redirect::back()->with('error', 'You must be assigned to a location to create products.');
+        }
+
+        Product::create(array_merge($validated, ['location_id' => $locationId]));
 
         return Redirect::route('inventory.index')->with('success', 'Product created successfully.');
     }

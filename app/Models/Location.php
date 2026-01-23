@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Location extends Model
@@ -39,6 +40,26 @@ class Location extends Model
     public function pendingSales(): HasMany
     {
         return $this->hasMany(PendingSale::class);
+    }
+
+    /**
+     * Get all users assigned to this location
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_locations')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get users with specific roles at this location
+     */
+    public function usersWithRole(string $role): BelongsToMany
+    {
+        return $this->users()->whereHas('roles', function ($query) use ($role) {
+            $query->where('name', $role);
+        });
     }
 
     /**

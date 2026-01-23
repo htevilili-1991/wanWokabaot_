@@ -15,6 +15,7 @@ class RoleSeeder extends Seeder
         // Create roles
         $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin']);
         $adminRole = Role::firstOrCreate(['name' => 'Admin']);
+        $cashierRole = Role::firstOrCreate(['name' => 'Cashier']);
         $treasurerRole = Role::firstOrCreate(['name' => 'Treasurer']);
         $memberRole = Role::firstOrCreate(['name' => 'Member']);
 
@@ -60,14 +61,23 @@ class RoleSeeder extends Seeder
         // Super Admin - all permissions
         $superAdminRole->syncPermissions($permissions);
 
-        // Admin - most permissions except some sensitive ones
+        // Admin - most permissions except user/role management
         $adminRole->syncPermissions([
             'view dashboard',
             'view members', 'create members', 'edit members', 'delete members',
             'view inventory', 'create inventory', 'edit inventory', 'delete inventory',
             'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
             'view settings', 'edit profile',
-            'view users', 'create users', 'edit users', 'delete users',
+            // No user management permissions for Admin
+        ]);
+
+        // Cashier - POS and transaction permissions, location-restricted
+        $cashierRole->syncPermissions([
+            'view dashboard',
+            'view members', 'edit members',
+            'view inventory', 'create inventory', 'edit inventory', 'delete inventory',
+            'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
+            'view settings', 'edit profile',
         ]);
 
         // Treasurer - financial permissions

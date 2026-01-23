@@ -4,6 +4,7 @@ use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireSuperAdmin;
 use App\Http\Middleware\RestrictSettingsAccess;
+use App\Http\Middleware\RestrictToAssignedLocations;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'restrict.settings' => RestrictSettingsAccess::class,
             'require.superadmin' => RequireSuperAdmin::class,
+            'restrict.locations' => RestrictToAssignedLocations::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

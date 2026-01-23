@@ -16,30 +16,46 @@ class POSController extends Controller
     /**
      * Display the POS interface.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::select('id', 'name', 'selling_price', 'current_stock')
-            ->where('current_stock', '>', 0)
-            ->get();
+        $query = Product::select('id', 'name', 'selling_price', 'current_stock')
+            ->where('current_stock', '>', 0);
+
+        // Restrict to user's assigned locations if not Admin
+        if ($request->has('assigned_location_ids')) {
+            $query->whereIn('location_id', $request->assigned_location_ids);
+        }
+
+        $products = $query->get();
 
         $members = Member::select('id', 'name', 'balance')
             ->where('status', 'Active')
             ->get();
 
+        // Check for pending sale edit data
+        $pendingSaleEdit = session('pending_sale_edit');
+
         return Inertia::render('POS/Index', [
             'products' => $products,
             'members' => $members,
+            'pendingSaleEdit' => $pendingSaleEdit,
         ]);
     }
 
     /**
      * Get products data for AJAX refresh.
      */
-    public function getProducts()
+    public function getProducts(Request $request)
     {
-        $products = Product::select('id', 'name', 'selling_price', 'current_stock')
-            ->where('current_stock', '>', 0)
-            ->get();
+        $query = Product::select('id', 'name', 'selling_price', 'current_stock')
+            ->where('current_stock', '>', 0);
+
+        // Restrict to user's assigned locations if not Admin
+        if ($request->has('assigned_location_ids')) {
+            $query->whereIn('location_id', $request->assigned_location_ids);
+        }
+
+        $products = $query->get();
 
         return response()->json([
             'products' => $products,
@@ -152,8 +168,21 @@ class POSController extends Controller
             ];
         })->toArray();
 
+        // Determine location for the sale
+        $user = Auth::user();
+        $locationId = null;
+
+        if ($user->hasRole('Admin')) {
+            // Admin can choose location, default to first available
+            $locationId = $user->primaryLocation()?->id ?? $user->locations()->first()?->id;
+        } else {
+            // For Cashiers/Treasurers, use their primary location
+            $locationId = $user->primaryLocation()?->id ?? $user->locations()->first()?->id;
+        }
+
         // Create pending sale
         PendingSale::create([
+            'location_id' => $locationId,
             'member_id' => $memberId,
             'created_by' => Auth::id(),
             'items' => $items,

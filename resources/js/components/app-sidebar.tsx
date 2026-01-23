@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Clock, CreditCard, Folder, LayoutGrid, Package, Users } from 'lucide-react';
 
 import { NavFooter } from '@/components/nav-footer';
@@ -19,40 +19,47 @@ import { index as inventoryIndex } from '@/routes/inventory';
 import { index as posIndex } from '@/routes/pos';
 import { index as pendingTransactionsIndex } from '@/routes/pending-transactions';
 import { index as reportsIndex } from '@/routes/reports';
-import { type NavItem } from '@/types';
+import { type NavItem, type SharedData, type User } from '@/types';
 
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+// Define menu items with required permissions
+const allMainNavItems: Array<NavItem & { permissions?: string[] }> = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        permissions: ['view dashboard'],
     },
     {
         title: 'Members',
         href: membersIndex(),
         icon: Users,
+        permissions: ['view members'],
     },
     {
         title: 'Inventory',
         href: inventoryIndex(),
         icon: Package,
+        permissions: ['view inventory'],
     },
     {
         title: 'POS',
         href: posIndex(),
         icon: CreditCard,
+        permissions: ['create pending transactions'], // POS requires transaction creation
     },
     {
         title: 'Pending Transactions',
         href: pendingTransactionsIndex(),
         icon: Clock,
+        permissions: ['view pending transactions'],
     },
     {
         title: 'Reports',
         href: reportsIndex(),
         icon: BookOpen,
+        permissions: ['view dashboard'], // Reports require dashboard access
     },
 ];
 
@@ -69,7 +76,63 @@ const footerNavItems: NavItem[] = [
     },*/
 ];
 
+// Helper function to check if user has required permissions
+function hasPermission(user: User | undefined, requiredPermissions: string[]): boolean {
+    if (!user || !user.roles) return false;
+
+    // Super Admin has all permissions
+    if (user.roles.some(role => role.name === 'Super Admin')) {
+        return true;
+    }
+
+    // Check if user has any of the required permissions
+    // Note: In a real implementation, you'd check against actual permissions,
+    // but for simplicity, we'll use role-based checking for common permissions
+    const rolePermissions: Record<string, string[]> = {
+        'Admin': [
+            'view dashboard', 'view members', 'create members', 'edit members', 'delete members',
+            'view inventory', 'create inventory', 'edit inventory', 'delete inventory',
+            'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
+            'view settings', 'edit profile'
+        ],
+        'Cashier': [
+            'view dashboard', 'view members', 'edit members',
+            'view inventory', 'create inventory', 'edit inventory', 'delete inventory',
+            'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
+            'view settings', 'edit profile'
+        ],
+        'Treasurer': [
+            'view dashboard', 'view members', 'edit members',
+            'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
+            'view settings', 'edit profile'
+        ],
+        'Member': [
+            'view dashboard', 'view members', 'view inventory', 'view pending transactions',
+            'view settings', 'edit profile'
+        ],
+    };
+
+    return user.roles.some(role => {
+        const rolePerms = rolePermissions[role.name] || [];
+        return requiredPermissions.some(perm => rolePerms.includes(perm));
+    });
+}
+
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const user = auth?.user;
+
+    // Filter menu items based on user permissions
+    const mainNavItems = allMainNavItems.filter(item => {
+        // If no permissions required, show to all authenticated users
+        if (!item.permissions || item.permissions.length === 0) {
+            return true;
+        }
+
+        // Check if user has required permissions
+        return hasPermission(user, item.permissions);
+    });
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

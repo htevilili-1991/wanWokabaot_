@@ -81,26 +81,26 @@ indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 index.form = indexForm
 
 /**
-* @see \App\Http\Controllers\PendingTransactionsController::cancel
-* @see app/Http/Controllers/PendingTransactionsController.php:86
-* @route '/pending-sales/{pendingSale}/cancel'
+* @see \App\Http\Controllers\PendingTransactionsController::addPayment
+* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @route '/pending-sales/{pendingSale}/payment'
 */
-export const cancel = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: cancel.url(args, options),
+export const addPayment = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: addPayment.url(args, options),
     method: 'post',
 })
 
-cancel.definition = {
+addPayment.definition = {
     methods: ["post"],
-    url: '/pending-sales/{pendingSale}/cancel',
+    url: '/pending-sales/{pendingSale}/payment',
 } satisfies RouteDefinition<["post"]>
 
 /**
-* @see \App\Http\Controllers\PendingTransactionsController::cancel
-* @see app/Http/Controllers/PendingTransactionsController.php:86
-* @route '/pending-sales/{pendingSale}/cancel'
+* @see \App\Http\Controllers\PendingTransactionsController::addPayment
+* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @route '/pending-sales/{pendingSale}/payment'
 */
-cancel.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+addPayment.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { pendingSale: args }
     }
@@ -123,43 +123,238 @@ cancel.url = (args: { pendingSale: number | { id: number } } | [pendingSale: num
         : args.pendingSale,
     }
 
-    return cancel.definition.url
+    return addPayment.definition.url
             .replace('{pendingSale}', parsedArgs.pendingSale.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
-* @see \App\Http\Controllers\PendingTransactionsController::cancel
-* @see app/Http/Controllers/PendingTransactionsController.php:86
-* @route '/pending-sales/{pendingSale}/cancel'
+* @see \App\Http\Controllers\PendingTransactionsController::addPayment
+* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @route '/pending-sales/{pendingSale}/payment'
 */
-cancel.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: cancel.url(args, options),
+addPayment.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: addPayment.url(args, options),
     method: 'post',
 })
 
 /**
-* @see \App\Http\Controllers\PendingTransactionsController::cancel
-* @see app/Http/Controllers/PendingTransactionsController.php:86
-* @route '/pending-sales/{pendingSale}/cancel'
+* @see \App\Http\Controllers\PendingTransactionsController::addPayment
+* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @route '/pending-sales/{pendingSale}/payment'
 */
-const cancelForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-    action: cancel.url(args, options),
+const addPaymentForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: addPayment.url(args, options),
     method: 'post',
 })
 
 /**
-* @see \App\Http\Controllers\PendingTransactionsController::cancel
-* @see app/Http/Controllers/PendingTransactionsController.php:86
-* @route '/pending-sales/{pendingSale}/cancel'
+* @see \App\Http\Controllers\PendingTransactionsController::addPayment
+* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @route '/pending-sales/{pendingSale}/payment'
 */
-cancelForm.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-    action: cancel.url(args, options),
+addPaymentForm.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: addPayment.url(args, options),
     method: 'post',
 })
 
-cancel.form = cancelForm
+addPayment.form = addPaymentForm
 
-const PendingTransactionsController = { index, cancel }
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::update
+* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @route '/pending-sales/{pendingSale}/edit'
+*/
+export const update = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: update.url(args, options),
+    method: 'get',
+})
+
+update.definition = {
+    methods: ["get","head"],
+    url: '/pending-sales/{pendingSale}/edit',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::update
+* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @route '/pending-sales/{pendingSale}/edit'
+*/
+update.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { pendingSale: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { pendingSale: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            pendingSale: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        pendingSale: typeof args.pendingSale === 'object'
+        ? args.pendingSale.id
+        : args.pendingSale,
+    }
+
+    return update.definition.url
+            .replace('{pendingSale}', parsedArgs.pendingSale.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::update
+* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @route '/pending-sales/{pendingSale}/edit'
+*/
+update.get = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: update.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::update
+* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @route '/pending-sales/{pendingSale}/edit'
+*/
+update.head = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: update.url(args, options),
+    method: 'head',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::update
+* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @route '/pending-sales/{pendingSale}/edit'
+*/
+const updateForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: update.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::update
+* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @route '/pending-sales/{pendingSale}/edit'
+*/
+updateForm.get = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: update.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::update
+* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @route '/pending-sales/{pendingSale}/edit'
+*/
+updateForm.head = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: update.url(args, {
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'HEAD',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'get',
+})
+
+update.form = updateForm
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::destroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/{pendingSale}'
+*/
+export const destroy = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy.url(args, options),
+    method: 'delete',
+})
+
+destroy.definition = {
+    methods: ["delete"],
+    url: '/pending-sales/{pendingSale}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::destroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/{pendingSale}'
+*/
+destroy.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { pendingSale: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { pendingSale: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            pendingSale: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        pendingSale: typeof args.pendingSale === 'object'
+        ? args.pendingSale.id
+        : args.pendingSale,
+    }
+
+    return destroy.definition.url
+            .replace('{pendingSale}', parsedArgs.pendingSale.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::destroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/{pendingSale}'
+*/
+destroy.delete = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy.url(args, options),
+    method: 'delete',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::destroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/{pendingSale}'
+*/
+const destroyForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: destroy.url(args, {
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::destroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/{pendingSale}'
+*/
+destroyForm.delete = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: destroy.url(args, {
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+destroy.form = destroyForm
+
+const PendingTransactionsController = { index, addPayment, update, destroy }
 
 export default PendingTransactionsController

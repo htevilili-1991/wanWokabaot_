@@ -2,14 +2,16 @@ import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout } from '@/layouts/app-layout';
-import { SettingsLayout } from '@/layouts/settings/layout';
-import { deleteConfirmationPopover } from '@/routes/locations';
+import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
+import { index as locationsIndex } from '@/routes/locations';
 import { create } from '@/routes/locations';
 import { edit } from '@/routes/locations';
 import { show } from '@/routes/locations';
 import { toggle } from '@/routes/locations';
-import DeleteConfirmationPopover from '@/components/delete-confirmation-popover';
+import { destroy } from '@/routes/locations';
+import { edit as profileEdit } from '@/routes/profile';
+import { DeleteConfirmationPopover } from '@/components/delete-confirmation-popover';
 import { type BreadcrumbItem } from '@/types';
 import { Plus, Eye, Edit, Trash2, ToggleLeft, ToggleRight, MapPin, Package, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
@@ -39,11 +41,11 @@ export default function LocationsIndex({ locations }: LocationsIndexProps) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Settings',
-            href: route('settings.profile.edit'),
+            href: profileEdit(),
         },
         {
             title: 'Locations',
-            href: route('settings.locations.index'),
+            href: locationsIndex(),
         },
     ];
 
@@ -54,7 +56,7 @@ export default function LocationsIndex({ locations }: LocationsIndexProps) {
 
     const confirmDelete = () => {
         if (locationToDelete) {
-            router.delete(deleteConfirmationPopover(locationToDelete.id).url, {
+            router.delete(destroy(locationToDelete.id).url, {
                 onSuccess: () => {
                     setDeletePopoverOpen(false);
                     setLocationToDelete(null);
@@ -196,11 +198,13 @@ export default function LocationsIndex({ locations }: LocationsIndexProps) {
             </SettingsLayout>
 
             <DeleteConfirmationPopover
-                open={deletePopoverOpen}
-                onOpenChange={setDeletePopoverOpen}
+                isOpen={deletePopoverOpen}
+                onClose={() => {
+                    setDeletePopoverOpen(false);
+                    setLocationToDelete(null);
+                }}
                 onConfirm={confirmDelete}
-                title="Delete Location"
-                description={`Are you sure you want to delete "${locationToDelete?.name}"? This action cannot be undone.`}
+                itemName={locationToDelete?.name || ''}
             />
         </AppLayout>
     );

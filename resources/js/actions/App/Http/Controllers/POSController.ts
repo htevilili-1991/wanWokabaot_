@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\POSController::index
 * @see app/Http/Controllers/POSController.php:19
@@ -82,7 +82,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\POSController::getProducts
-* @see app/Http/Controllers/POSController.php:38
+* @see app/Http/Controllers/POSController.php:48
 * @route '/pos/products'
 */
 export const getProducts = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -97,7 +97,7 @@ getProducts.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::getProducts
-* @see app/Http/Controllers/POSController.php:38
+* @see app/Http/Controllers/POSController.php:48
 * @route '/pos/products'
 */
 getProducts.url = (options?: RouteQueryOptions) => {
@@ -106,7 +106,7 @@ getProducts.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\POSController::getProducts
-* @see app/Http/Controllers/POSController.php:38
+* @see app/Http/Controllers/POSController.php:48
 * @route '/pos/products'
 */
 getProducts.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -116,7 +116,7 @@ getProducts.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::getProducts
-* @see app/Http/Controllers/POSController.php:38
+* @see app/Http/Controllers/POSController.php:48
 * @route '/pos/products'
 */
 getProducts.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -126,7 +126,7 @@ getProducts.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::getProducts
-* @see app/Http/Controllers/POSController.php:38
+* @see app/Http/Controllers/POSController.php:48
 * @route '/pos/products'
 */
 const getProductsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -136,7 +136,7 @@ const getProductsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'
 
 /**
 * @see \App\Http\Controllers\POSController::getProducts
-* @see app/Http/Controllers/POSController.php:38
+* @see app/Http/Controllers/POSController.php:48
 * @route '/pos/products'
 */
 getProductsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -146,7 +146,7 @@ getProductsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> 
 
 /**
 * @see \App\Http\Controllers\POSController::getProducts
-* @see app/Http/Controllers/POSController.php:38
+* @see app/Http/Controllers/POSController.php:48
 * @route '/pos/products'
 */
 getProductsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ getProducts.form = getProductsForm
 
 /**
 * @see \App\Http\Controllers\POSController::processSale
-* @see app/Http/Controllers/POSController.php:52
+* @see app/Http/Controllers/POSController.php:68
 * @route '/pos/sale'
 */
 export const processSale = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -178,7 +178,7 @@ processSale.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::processSale
-* @see app/Http/Controllers/POSController.php:52
+* @see app/Http/Controllers/POSController.php:68
 * @route '/pos/sale'
 */
 processSale.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ processSale.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\POSController::processSale
-* @see app/Http/Controllers/POSController.php:52
+* @see app/Http/Controllers/POSController.php:68
 * @route '/pos/sale'
 */
 processSale.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -197,7 +197,7 @@ processSale.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::processSale
-* @see app/Http/Controllers/POSController.php:52
+* @see app/Http/Controllers/POSController.php:68
 * @route '/pos/sale'
 */
 const processSaleForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -207,7 +207,7 @@ const processSaleForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\POSController::processSale
-* @see app/Http/Controllers/POSController.php:52
+* @see app/Http/Controllers/POSController.php:68
 * @route '/pos/sale'
 */
 processSaleForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -219,7 +219,7 @@ processSale.form = processSaleForm
 
 /**
 * @see \App\Http\Controllers\POSController::savePendingSale
-* @see app/Http/Controllers/POSController.php:97
+* @see app/Http/Controllers/POSController.php:113
 * @route '/pos/save-pending'
 */
 export const savePendingSale = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -234,7 +234,7 @@ savePendingSale.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::savePendingSale
-* @see app/Http/Controllers/POSController.php:97
+* @see app/Http/Controllers/POSController.php:113
 * @route '/pos/save-pending'
 */
 savePendingSale.url = (options?: RouteQueryOptions) => {
@@ -243,7 +243,7 @@ savePendingSale.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\POSController::savePendingSale
-* @see app/Http/Controllers/POSController.php:97
+* @see app/Http/Controllers/POSController.php:113
 * @route '/pos/save-pending'
 */
 savePendingSale.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -253,7 +253,7 @@ savePendingSale.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =>
 
 /**
 * @see \App\Http\Controllers\POSController::savePendingSale
-* @see app/Http/Controllers/POSController.php:97
+* @see app/Http/Controllers/POSController.php:113
 * @route '/pos/save-pending'
 */
 const savePendingSaleForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -263,7 +263,7 @@ const savePendingSaleForm = (options?: RouteQueryOptions): RouteFormDefinition<'
 
 /**
 * @see \App\Http\Controllers\POSController::savePendingSale
-* @see app/Http/Controllers/POSController.php:97
+* @see app/Http/Controllers/POSController.php:113
 * @route '/pos/save-pending'
 */
 savePendingSaleForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -273,86 +273,6 @@ savePendingSaleForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'p
 
 savePendingSale.form = savePendingSaleForm
 
-/**
-* @see \App\Http\Controllers\POSController::completePendingSale
-* @see app/Http/Controllers/POSController.php:171
-* @route '/pending-sales/{pendingSale}/complete'
-*/
-export const completePendingSale = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: completePendingSale.url(args, options),
-    method: 'post',
-})
-
-completePendingSale.definition = {
-    methods: ["post"],
-    url: '/pending-sales/{pendingSale}/complete',
-} satisfies RouteDefinition<["post"]>
-
-/**
-* @see \App\Http\Controllers\POSController::completePendingSale
-* @see app/Http/Controllers/POSController.php:171
-* @route '/pending-sales/{pendingSale}/complete'
-*/
-completePendingSale.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { pendingSale: args }
-    }
-
-    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-        args = { pendingSale: args.id }
-    }
-
-    if (Array.isArray(args)) {
-        args = {
-            pendingSale: args[0],
-        }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-        pendingSale: typeof args.pendingSale === 'object'
-        ? args.pendingSale.id
-        : args.pendingSale,
-    }
-
-    return completePendingSale.definition.url
-            .replace('{pendingSale}', parsedArgs.pendingSale.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\POSController::completePendingSale
-* @see app/Http/Controllers/POSController.php:171
-* @route '/pending-sales/{pendingSale}/complete'
-*/
-completePendingSale.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: completePendingSale.url(args, options),
-    method: 'post',
-})
-
-/**
-* @see \App\Http\Controllers\POSController::completePendingSale
-* @see app/Http/Controllers/POSController.php:171
-* @route '/pending-sales/{pendingSale}/complete'
-*/
-const completePendingSaleForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-    action: completePendingSale.url(args, options),
-    method: 'post',
-})
-
-/**
-* @see \App\Http\Controllers\POSController::completePendingSale
-* @see app/Http/Controllers/POSController.php:171
-* @route '/pending-sales/{pendingSale}/complete'
-*/
-completePendingSaleForm.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-    action: completePendingSale.url(args, options),
-    method: 'post',
-})
-
-completePendingSale.form = completePendingSaleForm
-
-const POSController = { index, getProducts, processSale, savePendingSale, completePendingSale }
+const POSController = { index, getProducts, processSale, savePendingSale }
 
 export default POSController

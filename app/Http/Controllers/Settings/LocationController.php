@@ -16,7 +16,11 @@ class LocationController extends Controller
      */
     public function index(): Response
     {
-        $locations = Location::withCount(['products', 'pendingSales'])
+        $locations = Location::withCount(['products', 'pendingSales', 'users'])
+            ->with(['users' => function($query) {
+                $query->select('users.id', 'users.name', 'users.email')
+                      ->with('roles:name');
+            }])
             ->orderBy('name')
             ->get();
 
@@ -59,9 +63,16 @@ class LocationController extends Controller
      */
     public function show(Location $location): Response
     {
-        $location->load(['products' => function($query) {
-            $query->select('id', 'location_id', 'name', 'category', 'current_stock', 'selling_price');
-        }]);
+        $location->load([
+            'products' => function($query) {
+                $query->select('id', 'location_id', 'name', 'category', 'current_stock', 'selling_price');
+            },
+            'users' => function($query) {
+                $query->select('users.id', 'users.name', 'users.email')
+                      ->with('roles:name')
+                      ->withPivot('is_primary');
+            }
+        ]);
 
         return Inertia::render('settings/locations/show', [
             'location' => $location,
@@ -121,11 +132,16 @@ class LocationController extends Controller
      */
     public function toggle(Location $location): RedirectResponse
     {
-        $location->update(['is_active' => !$location->is_active]);
+        try {
+            $location->update(['is_active' => !$location->is_active]);
 
-        $status = $location->is_active ? 'activated' : 'deactivated';
+            $status = $location->is_active ? 'activated' : 'deactivated';
 
-        return redirect()->route('settings.locations.index')
-            ->with('success', "Location {$status} successfully.");
+            return redirect()->route('settings.locations.index')
+                ->with('success', "Location {$status} successfully.");
+        } catch (\Exception $e) {
+            return redirect()->route('settings.locations.index')
+                ->with('error', 'Failed to toggle location status: ' . $e->getMessage());
+        }
     }
 }

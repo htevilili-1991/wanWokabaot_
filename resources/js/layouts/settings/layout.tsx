@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
 import Heading from '@/components/heading';
@@ -14,53 +14,115 @@ import { edit as editPassword } from '@/routes/user-password';
 import { index } from '@/routes/users';
 import { index as systemIndex } from '@/routes/system';
 import { index as locationsIndex } from '@/routes/locations';
-import { type NavItem } from '@/types';
+import { type NavItem, type SharedData, type User } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
+// Define settings menu items with required permissions
+const allSidebarNavItems: Array<NavItem & { permissions?: string[] }> = [
     {
         title: 'Profile',
         href: edit(),
         icon: null,
+        permissions: ['edit profile'], // All authenticated users
     },
     {
         title: 'Password',
         href: editPassword(),
         icon: null,
+        permissions: ['edit profile'], // All authenticated users
     },
     {
         title: 'Two-Factor Auth',
         href: show(),
         icon: null,
+        permissions: ['edit profile'], // All authenticated users
     },
     {
         title: 'Appearance',
         href: editAppearance(),
         icon: null,
+        permissions: ['edit profile'], // All authenticated users
     },
     {
         title: 'User Management',
         href: index(),
         icon: null,
+        permissions: ['view users'], // Super Admin only
     },
     {
         title: 'Roles & Permissions',
         href: rolesPermissionsIndex(),
         icon: null,
+        permissions: ['view users'], // Super Admin only
     },
     {
         title: 'System',
         href: systemIndex(),
         icon: null,
+        permissions: ['view settings'], // Admin level
     },
     {
         title: 'Locations',
         href: locationsIndex(),
         icon: null,
+        permissions: ['view users'], // Super Admin only for location management
     },
 ];
 
+// Helper function to check if user has required permissions
+function hasPermission(user: User | undefined, requiredPermissions: string[]): boolean {
+    if (!user || !user.roles) return false;
+
+    // Super Admin has all permissions
+    if (user.roles.some(role => role.name === 'Super Admin')) {
+        return true;
+    }
+
+    // Check if user has any of the required permissions
+    const rolePermissions: Record<string, string[]> = {
+        'Admin': [
+            'view dashboard', 'view members', 'create members', 'edit members', 'delete members',
+            'view inventory', 'create inventory', 'edit inventory', 'delete inventory',
+            'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
+            'view settings', 'edit profile'
+        ],
+        'Cashier': [
+            'view dashboard', 'view members', 'edit members',
+            'view inventory', 'create inventory', 'edit inventory', 'delete inventory',
+            'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
+            'view settings', 'edit profile'
+        ],
+        'Treasurer': [
+            'view dashboard', 'view members', 'edit members',
+            'view pending transactions', 'create pending transactions', 'complete pending transactions', 'cancel pending transactions',
+            'view settings', 'edit profile'
+        ],
+        'Member': [
+            'view dashboard', 'view members', 'view inventory', 'view pending transactions',
+            'view settings', 'edit profile'
+        ],
+    };
+
+    return user.roles.some(role => {
+        const rolePerms = rolePermissions[role.name] || [];
+        return requiredPermissions.some(perm => rolePerms.includes(perm));
+    });
+}
+
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { urlIsActive } = useActiveUrl();
+    const { auth } = usePage<SharedData>().props;
+    const user = auth?.user;
+
+    // Filter menu items based on user permissions
+    const sidebarNavItems = allSidebarNavItems.filter(item => {
+        // If no permissions required, show to all authenticated users
+        if (!item.permissions || item.permissions.length === 0) {
+            return true;
+        }
+
+        // Check if user has required permissions
+        return hasPermission(user, item.permissions);
+    });
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {

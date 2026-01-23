@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
+import { edit } from '@/routes/profile';
+import { index, update } from '@/routes/system';
 
 interface SystemSettingsProps {
     settings: {
@@ -25,17 +27,17 @@ export default function System({ settings }: SystemSettingsProps) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route('settings.system.update'));
+        put(update());
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Settings',
-            href: route('settings.profile.edit'),
+            href: edit(),
         },
         {
             title: 'System',
-            href: route('settings.system.index'),
+            href: index(),
         },
     ];
 

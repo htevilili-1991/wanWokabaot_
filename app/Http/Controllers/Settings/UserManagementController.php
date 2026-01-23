@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\Location;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,12 +18,14 @@ class UserManagementController extends Controller
      */
     public function index()
     {
-        $users = User::with('roles')->paginate(10);
+        $users = User::with(['roles', 'locations'])->paginate(10);
         $roles = Role::all();
+        $locations = Location::active()->orderBy('name')->get();
 
         return Inertia::render('settings/users', [
             'users' => $users,
             'roles' => $roles,
+            'locations' => $locations,
         ]);
     }
 
@@ -36,6 +39,9 @@ class UserManagementController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', 'exists:roles,name'],
+            'locations' => ['array'],
+            'locations.*' => ['integer', 'exists:locations,id'],
+            'primary_location' => ['nullable', 'integer', 'exists:locations,id'],
         ]);
 
         $user = User::create([
@@ -45,6 +51,14 @@ class UserManagementController extends Controller
         ]);
 
         $user->assignRole($validated['role']);
+
+        // Assign locations to user
+        if (isset($validated['locations']) && is_array($validated['locations'])) {
+            foreach ($validated['locations'] as $locationId) {
+                $isPrimary = ($validated['primary_location'] ?? null) == $locationId;
+                $user->assignToLocation($locationId, $isPrimary);
+            }
+        }
 
         return redirect()->back()->with('success', 'User created successfully.');
     }
@@ -59,6 +73,9 @@ class UserManagementController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', 'string', 'exists:roles,name'],
             'password' => ['nullable', 'string', 'min:8'],
+            'locations' => ['array'],
+            'locations.*' => ['integer', 'exists:locations,id'],
+            'primary_location' => ['nullable', 'integer', 'exists:locations,id'],
         ]);
 
         $user->update([
@@ -71,6 +88,18 @@ class UserManagementController extends Controller
         }
 
         $user->syncRoles([$validated['role']]);
+
+        // Update location assignments
+        // First, detach all current locations
+        $user->locations()->detach();
+
+        // Then assign new locations
+        if (isset($validated['locations']) && is_array($validated['locations'])) {
+            foreach ($validated['locations'] as $locationId) {
+                $isPrimary = ($validated['primary_location'] ?? null) == $locationId;
+                $user->assignToLocation($locationId, $isPrimary);
+            }
+        }
 
         return redirect()->back()->with('success', 'User updated successfully.');
     }

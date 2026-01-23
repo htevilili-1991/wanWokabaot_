@@ -14,9 +14,14 @@ class PendingTransactionsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = PendingSale::with(['member', 'creator'])
+        $query = PendingSale::with(['member', 'creator', 'location'])
             ->pending()
             ->latest();
+
+        // Restrict to user's assigned locations if not Admin
+        if ($request->has('assigned_location_ids')) {
+            $query->whereIn('location_id', $request->assigned_location_ids);
+        }
 
         // Apply filters
         if ($request->filled('member_id')) {
@@ -42,10 +47,13 @@ class PendingTransactionsController extends Controller
                 'items' => $pendingSale->items,
                 'items_count' => $pendingSale->items_count,
                 'subtotal' => $pendingSale->subtotal,
+                'total_paid' => $pendingSale->total_paid,
+                'remaining_balance' => $pendingSale->remaining_balance,
                 'formatted_subtotal' => $pendingSale->formatted_subtotal,
                 'created_by' => $pendingSale->creator->name,
                 'created_at' => $pendingSale->created_at,
                 'notes' => $pendingSale->notes,
+                'payment_history' => $pendingSale->payment_history,
             ];
         });
 
@@ -63,38 +71,93 @@ class PendingTransactionsController extends Controller
     }
 
     /**
-     * Complete a pending transaction.
+     * Add payment to a pending transaction.
      */
-    public function complete(PendingSale $pendingSale): RedirectResponse
+    public function addPayment(Request $request, PendingSale $pendingSale): RedirectResponse
     {
-        if (! $pendingSale->isPending()) {
-            return back()->with('error', 'This transaction has already been processed.');
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|in:cash,bank_transfer,card',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        if (!$pendingSale->isPending()) {
+            return back()->with('error', 'This transaction has already been completed.');
         }
 
-        $success = $pendingSale->complete(auth()->user());
+        if ($request->amount > $pendingSale->remaining_balance) {
+            return back()->with('error', 'Payment amount cannot exceed remaining balance.');
+        }
+
+        $success = $pendingSale->addPayment(
+            $request->amount,
+            $request->payment_method,
+            $request->notes
+        );
 
         if ($success) {
-            return back()->with('success', "Transaction {$pendingSale->transaction_id} completed successfully!");
+            // Update member balance if it's a member transaction
+            if ($pendingSale->member) {
+                $pendingSale->member->decrement('balance', $request->amount);
+            }
+
+            $message = $pendingSale->isFullyPaid()
+                ? "Transaction {$pendingSale->transaction_id} completed successfully!"
+                : "Payment of {$request->amount} VT added to transaction {$pendingSale->transaction_id}.";
+
+            return back()->with('success', $message);
         } else {
-            return back()->with('error', "Failed to complete transaction {$pendingSale->transaction_id}. Please check stock and member status.");
+            return back()->with('error', 'Failed to add payment.');
         }
     }
 
     /**
-     * Cancel a pending transaction.
+     * Reopen transaction in POS for editing.
      */
-    public function cancel(PendingSale $pendingSale): RedirectResponse
+    public function update(PendingSale $pendingSale): RedirectResponse
     {
-        if (! $pendingSale->isPending()) {
-            return back()->with('error', 'This transaction has already been processed.');
+        if (!$pendingSale->isPending()) {
+            return back()->with('error', 'This transaction has already been completed.');
         }
 
-        $success = $pendingSale->cancel();
+        // Store pending sale data in session for POS to pick up
+        session([
+            'pending_sale_edit' => [
+                'id' => $pendingSale->id,
+                'items' => $pendingSale->items,
+                'member_id' => $pendingSale->member_id,
+                'subtotal' => $pendingSale->subtotal,
+                'notes' => $pendingSale->notes,
+            ]
+        ]);
 
-        if ($success) {
-            return back()->with('success', "Transaction {$pendingSale->transaction_id} cancelled successfully!");
-        } else {
-            return back()->with('error', "Failed to cancel transaction {$pendingSale->transaction_id}.");
+        return redirect()->route('pos.index')->with('info', 'Transaction opened for editing in POS.');
+    }
+
+    /**
+     * Delete/cancel a pending transaction.
+     */
+    public function destroy(PendingSale $pendingSale): RedirectResponse
+    {
+        if (!$pendingSale->isPending()) {
+            return back()->with('error', 'This transaction has already been completed.');
         }
+
+        // Restore stock for all items
+        foreach ($pendingSale->items as $item) {
+            $product = \App\Models\Product::find($item['id']);
+            if ($product) {
+                $product->increment('current_stock', $item['quantity']);
+            }
+        }
+
+        // If member transaction and payments were made, refund to member balance
+        if ($pendingSale->member && $pendingSale->total_paid > 0) {
+            $pendingSale->member->increment('balance', $pendingSale->total_paid);
+        }
+
+        $pendingSale->delete();
+
+        return back()->with('success', "Transaction {$pendingSale->transaction_id} cancelled and items returned to inventory.");
     }
 }

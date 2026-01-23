@@ -4,6 +4,8 @@ import { Calendar, CheckCircle, Search, User, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,18 +25,25 @@ interface PendingSale {
     } | null;
     member_name: string;
     items: Array<{
-        product_id: number;
+        id: number;
         name: string;
         quantity: number;
-        unit_price: number;
-        total: number;
+        price: number;
     }>;
     items_count: number;
     subtotal: number;
+    total_paid: number;
+    remaining_balance: number;
     formatted_subtotal: string;
     created_by: string;
     created_at: string;
     notes: string | null;
+    payment_history: Array<{
+        amount: number;
+        payment_method: string;
+        paid_at: string;
+        notes?: string;
+    }> | null;
 }
 
 interface PendingTransactionsPageProps {
@@ -70,7 +79,8 @@ export default function PendingTransactionsIndex({
         { label: 'Pending Transactions', href: '/pending-transactions' },
     ];
 
-    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<PendingSale | null>(null);
     const [flashMessage, setFlashMessage] = useState<{
         message: string;
@@ -78,14 +88,37 @@ export default function PendingTransactionsIndex({
         show: boolean;
     }>({ message: '', type: 'success', show: false });
 
-    const completeForm = useForm({});
-    const cancelForm = useForm({});
+    const paymentForm = useForm({
+        amount: '',
+        payment_method: 'cash',
+        notes: '',
+    });
+    const deleteForm = useForm({});
 
-    const handleComplete = (transaction: PendingSale) => {
-        completeForm.post(`/pending-sales/${transaction.id}/complete`, {
+    const handleAddPayment = (transaction: PendingSale) => {
+        setSelectedTransaction(transaction);
+        paymentForm.reset();
+        paymentForm.setData('amount', Math.min(transaction.remaining_balance, 100).toString());
+        setShowPaymentModal(true);
+    };
+
+    const handleUpdate = (transaction: PendingSale) => {
+        router.visit(`/pending-sales/${transaction.id}/edit`);
+    };
+
+    const handleDelete = (transaction: PendingSale) => {
+        setSelectedTransaction(transaction);
+        setShowDeleteModal(true);
+    };
+
+    const submitPayment = () => {
+        if (!selectedTransaction) return;
+
+        paymentForm.post(`/pending-sales/${selectedTransaction.id}/payment`, {
             onSuccess: () => {
+                setShowPaymentModal(false);
                 setFlashMessage({
-                    message: `Transaction ${transaction.transaction_id} completed successfully!`,
+                    message: 'Payment added successfully!',
                     type: 'success',
                     show: true,
                 });
@@ -93,7 +126,7 @@ export default function PendingTransactionsIndex({
             },
             onError: () => {
                 setFlashMessage({
-                    message: 'Failed to complete transaction.',
+                    message: 'Failed to add payment.',
                     type: 'error',
                     show: true,
                 });
@@ -101,22 +134,17 @@ export default function PendingTransactionsIndex({
         });
     };
 
-    const handleCancel = (transaction: PendingSale) => {
-        setSelectedTransaction(transaction);
-        setShowCancelModal(true);
-    };
-
-    const confirmCancel = () => {
+    const confirmDelete = () => {
         if (!selectedTransaction) return;
 
-        cancelForm.post(`/pending-sales/${selectedTransaction.id}/cancel`, {
+        deleteForm.delete(`/pending-sales/${selectedTransaction.id}`, {
             onSuccess: () => {
                 setFlashMessage({
                     message: `Transaction ${selectedTransaction.transaction_id} cancelled successfully!`,
                     type: 'success',
                     show: true,
                 });
-                setShowCancelModal(false);
+                setShowDeleteModal(false);
                 setSelectedTransaction(null);
                 setTimeout(() => setFlashMessage(prev => ({ ...prev, show: false })), 3000);
             },
@@ -223,6 +251,8 @@ export default function PendingTransactionsIndex({
                                     <TableHead>Customer</TableHead>
                                     <TableHead>Items</TableHead>
                                     <TableHead>Total</TableHead>
+                                    <TableHead>Paid</TableHead>
+                                    <TableHead>Remaining</TableHead>
                                     <TableHead>Created By</TableHead>
                                     <TableHead>Created At</TableHead>
                                     <TableHead>Actions</TableHead>
@@ -231,7 +261,7 @@ export default function PendingTransactionsIndex({
                             <TableBody>
                                 {pendingSales.data.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                        <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                                             No pending transactions found
                                         </TableCell>
                                     </TableRow>
@@ -264,6 +294,12 @@ export default function PendingTransactionsIndex({
                                             <TableCell className="font-medium text-green-600">
                                                 {transaction.formatted_subtotal}
                                             </TableCell>
+                                            <TableCell className="font-medium text-blue-600">
+                                                {formatCurrency(transaction.total_paid)}
+                                            </TableCell>
+                                            <TableCell className="font-medium text-orange-600">
+                                                {formatCurrency(transaction.remaining_balance)}
+                                            </TableCell>
                                             <TableCell>{transaction.created_by}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-1 text-sm text-gray-500">
@@ -272,23 +308,32 @@ export default function PendingTransactionsIndex({
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-1 flex-wrap">
+                                                    {transaction.member && transaction.remaining_balance > 0 && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleAddPayment(transaction)}
+                                                            className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                                                        >
+                                                            💰 Add Payment
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         size="sm"
-                                                        onClick={() => handleComplete(transaction)}
-                                                        disabled={completeForm.processing}
-                                                        className="bg-green-600 hover:bg-green-700"
+                                                        variant="outline"
+                                                        onClick={() => handleUpdate(transaction)}
+                                                        className="bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700"
                                                     >
-                                                        <CheckCircle className="h-4 w-4 mr-1" />
-                                                        Complete
+                                                        ✏️ Update
                                                     </Button>
                                                     <Button
                                                         size="sm"
-                                                        variant="destructive"
-                                                        onClick={() => handleCancel(transaction)}
+                                                        variant="outline"
+                                                        onClick={() => handleDelete(transaction)}
+                                                        className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
                                                     >
-                                                        <XCircle className="h-4 w-4 mr-1" />
-                                                        Cancel
+                                                        🗑️ Delete
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -348,18 +393,90 @@ export default function PendingTransactionsIndex({
                 )}
             </div>
 
-            {/* Cancel Confirmation Modal */}
+            {/* Payment Modal */}
+            <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Add Payment</DialogTitle>
+                        <DialogDescription>
+                            Add a payment to transaction {selectedTransaction?.transaction_id}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={(e) => { e.preventDefault(); submitPayment(); }}>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="amount">Payment Amount (VT)</Label>
+                                <Input
+                                    id="amount"
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    max={selectedTransaction?.remaining_balance}
+                                    value={paymentForm.data.amount}
+                                    onChange={(e) => paymentForm.setData('amount', e.target.value)}
+                                    placeholder="Enter payment amount"
+                                    required
+                                />
+                                {selectedTransaction && (
+                                    <p className="text-sm text-gray-500">
+                                        Remaining balance: {formatCurrency(selectedTransaction.remaining_balance)}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="payment_method">Payment Method</Label>
+                                <Select
+                                    value={paymentForm.data.payment_method}
+                                    onValueChange={(value) => paymentForm.setData('payment_method', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select payment method" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="cash">Cash</SelectItem>
+                                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                                        <SelectItem value="card">Card</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="notes">Notes (Optional)</Label>
+                                <Input
+                                    id="notes"
+                                    value={paymentForm.data.notes}
+                                    onChange={(e) => paymentForm.setData('notes', e.target.value)}
+                                    placeholder="Payment notes"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setShowPaymentModal(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={paymentForm.processing}>
+                                {paymentForm.processing ? 'Adding Payment...' : 'Add Payment'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Modal */}
             <ConfirmDeleteModal
-                isOpen={showCancelModal}
+                isOpen={showDeleteModal}
                 onClose={() => {
-                    setShowCancelModal(false);
+                    setShowDeleteModal(false);
                     setSelectedTransaction(null);
                 }}
-                onConfirm={confirmCancel}
-                title="Cancel Transaction"
-                description={`Are you sure you want to cancel transaction ${selectedTransaction?.transaction_id}? This will remove the pending transaction and no stock will be deducted.`}
+                onConfirm={confirmDelete}
+                title="Delete Transaction"
+                description={`Are you sure you want to delete transaction ${selectedTransaction?.transaction_id}? This will cancel the transaction and return all items to inventory. Any payments made will be refunded to the member's balance.`}
                 itemName={selectedTransaction?.transaction_id}
-                isLoading={cancelForm.processing}
+                isLoading={deleteForm.processing}
             />
         </AppLayout>
     );

@@ -25,6 +25,13 @@ interface Role {
     updated_at: string;
 }
 
+interface Location {
+    id: number;
+    name: string;
+    address: string | null;
+    is_active: boolean;
+}
+
 interface User {
     id: number;
     name: string;
@@ -34,6 +41,7 @@ interface User {
     created_at: string;
     updated_at: string;
     roles: Role[];
+    locations: Location[];
 }
 
 interface UsersPageProps {
@@ -45,6 +53,7 @@ interface UsersPageProps {
         total: number;
     };
     roles: Role[];
+    locations: Location[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -54,7 +63,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Users({ users, roles }: UsersPageProps) {
+export default function Users({ users, roles, locations }: UsersPageProps) {
     const { auth } = usePage<SharedData>().props;
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -67,6 +76,8 @@ export default function Users({ users, roles }: UsersPageProps) {
         email: '',
         password: '',
         role: '',
+        locations: [] as number[],
+        primary_location: null as number | null,
     });
 
     const editForm = useForm({
@@ -74,6 +85,8 @@ export default function Users({ users, roles }: UsersPageProps) {
         email: '',
         password: '',
         role: '',
+        locations: [] as number[],
+        primary_location: null as number | null,
     });
 
     const submitCreate: FormEventHandler = (e) => {
@@ -125,6 +138,8 @@ export default function Users({ users, roles }: UsersPageProps) {
             email: user.email,
             password: '',
             role: user.roles[0]?.name || '',
+            locations: user.locations.map(location => location.id),
+            primary_location: null, // Will be set if user has locations
         });
         setIsEditDialogOpen(true);
     };
@@ -204,6 +219,65 @@ export default function Users({ users, roles }: UsersPageProps) {
                                             </SelectContent>
                                         </Select>
                                     </div>
+                                    <div>
+                                        <Label>Locations</Label>
+                                        <div className="space-y-2 mt-2">
+                                            {locations.map((location) => (
+                                                <div key={location.id} className="flex items-center space-x-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`create-location-${location.id}`}
+                                                        checked={createForm.data.locations.includes(location.id)}
+                                                        onChange={(e) => {
+                                                            const currentLocations = [...createForm.data.locations];
+                                                            if (e.target.checked) {
+                                                                currentLocations.push(location.id);
+                                                            } else {
+                                                                const index = currentLocations.indexOf(location.id);
+                                                                if (index > -1) {
+                                                                    currentLocations.splice(index, 1);
+                                                                }
+                                                                // Remove from primary if unchecked
+                                                                if (createForm.data.primary_location === location.id) {
+                                                                    createForm.setData('primary_location', null);
+                                                                }
+                                                            }
+                                                            createForm.setData('locations', currentLocations);
+                                                        }}
+                                                        className="rounded border-gray-300"
+                                                    />
+                                                    <Label htmlFor={`create-location-${location.id}`} className="text-sm">
+                                                        {location.name}
+                                                        {location.address && (
+                                                            <span className="text-gray-500 ml-1">({location.address})</span>
+                                                        )}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {createForm.data.locations.length > 1 && (
+                                            <div className="mt-3">
+                                                <Label htmlFor="create-primary-location">Primary Location</Label>
+                                                <Select
+                                                    value={createForm.data.primary_location?.toString() || ''}
+                                                    onValueChange={(value) => createForm.setData('primary_location', value ? parseInt(value) : null)}
+                                                >
+                                                    <SelectTrigger className="mt-1">
+                                                        <SelectValue placeholder="Select primary location" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {locations
+                                                            .filter(location => createForm.data.locations.includes(location.id))
+                                                            .map((location) => (
+                                                                <SelectItem key={location.id} value={location.id.toString()}>
+                                                                    {location.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit" disabled={createForm.processing}>
@@ -273,6 +347,65 @@ export default function Users({ users, roles }: UsersPageProps) {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                <div>
+                                    <Label>Locations</Label>
+                                    <div className="space-y-2 mt-2">
+                                        {locations.map((location) => (
+                                            <div key={location.id} className="flex items-center space-x-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`edit-location-${location.id}`}
+                                                    checked={editForm.data.locations.includes(location.id)}
+                                                    onChange={(e) => {
+                                                        const currentLocations = [...editForm.data.locations];
+                                                        if (e.target.checked) {
+                                                            currentLocations.push(location.id);
+                                                        } else {
+                                                            const index = currentLocations.indexOf(location.id);
+                                                            if (index > -1) {
+                                                                currentLocations.splice(index, 1);
+                                                            }
+                                                            // Remove from primary if unchecked
+                                                            if (editForm.data.primary_location === location.id) {
+                                                                editForm.setData('primary_location', null);
+                                                            }
+                                                        }
+                                                        editForm.setData('locations', currentLocations);
+                                                    }}
+                                                    className="rounded border-gray-300"
+                                                />
+                                                <Label htmlFor={`edit-location-${location.id}`} className="text-sm">
+                                                    {location.name}
+                                                    {location.address && (
+                                                        <span className="text-gray-500 ml-1">({location.address})</span>
+                                                    )}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {editForm.data.locations.length > 1 && (
+                                        <div className="mt-3">
+                                            <Label htmlFor="edit-primary-location">Primary Location</Label>
+                                            <Select
+                                                value={editForm.data.primary_location?.toString() || ''}
+                                                onValueChange={(value) => editForm.setData('primary_location', value ? parseInt(value) : null)}
+                                            >
+                                                <SelectTrigger className="mt-1">
+                                                    <SelectValue placeholder="Select primary location" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {locations
+                                                        .filter(location => editForm.data.locations.includes(location.id))
+                                                        .map((location) => (
+                                                            <SelectItem key={location.id} value={location.id.toString()}>
+                                                                {location.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <DialogFooter>
                                 <Button
@@ -308,6 +441,7 @@ export default function Users({ users, roles }: UsersPageProps) {
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Role</TableHead>
+                                    <TableHead>Locations</TableHead>
                                     <TableHead>Created</TableHead>
                                     <TableHead>Actions</TableHead>
                                 </TableRow>
@@ -319,6 +453,22 @@ export default function Users({ users, roles }: UsersPageProps) {
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>
                                             {user.roles.length > 0 ? user.roles[0].name : 'No Role'}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.locations.length > 0 ? (
+                                                    user.locations.map((location) => (
+                                                        <span
+                                                            key={location.id}
+                                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+                                                        >
+                                                            {location.name}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-gray-500 text-sm">No locations</span>
+                                                )}
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             {new Date(user.created_at).toLocaleDateString()}

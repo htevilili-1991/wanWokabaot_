@@ -70,22 +70,28 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
     Route::put('members/{member}', [App\Http\Controllers\MemberController::class, 'update'])->name('members.update');
     Route::delete('members/{member}', [App\Http\Controllers\MemberController::class, 'destroy'])->name('members.destroy');
 
-    // Full inventory management
-    Route::get('inventory/create', [App\Http\Controllers\InventoryController::class, 'create'])->name('inventory.create');
-    Route::post('inventory', [App\Http\Controllers\InventoryController::class, 'store'])->name('inventory.store');
-    Route::get('inventory/{product}/edit', [App\Http\Controllers\InventoryController::class, 'edit'])->name('inventory.edit');
-    Route::put('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'update'])->name('inventory.update');
-    Route::delete('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
+    // Full inventory management (location-restricted)
+    Route::middleware(['restrict.locations'])->group(function () {
+        Route::get('inventory/create', [App\Http\Controllers\InventoryController::class, 'create'])->name('inventory.create');
+        Route::post('inventory', [App\Http\Controllers\InventoryController::class, 'store'])->name('inventory.store');
+        Route::get('inventory/{product}/edit', [App\Http\Controllers\InventoryController::class, 'edit'])->name('inventory.edit');
+        Route::put('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'update'])->name('inventory.update');
+        Route::delete('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
+    });
 
-    // POS operations
-    Route::get('pos', [App\Http\Controllers\POSController::class, 'index'])->name('pos.index');
-    Route::get('pos/products', [App\Http\Controllers\POSController::class, 'getProducts'])->name('pos.products');
-    Route::post('pos/sale', [App\Http\Controllers\POSController::class, 'processSale'])->name('pos.sale');
-    Route::post('pos/save-pending', [App\Http\Controllers\POSController::class, 'savePendingSale'])->name('pos.savePending');
+    // POS operations (location-restricted)
+    Route::middleware(['restrict.locations'])->group(function () {
+        Route::get('pos', [App\Http\Controllers\POSController::class, 'index'])->name('pos.index');
+        Route::get('pos/products', [App\Http\Controllers\POSController::class, 'getProducts'])->name('pos.products');
+        Route::post('pos/sale', [App\Http\Controllers\POSController::class, 'processSale'])->name('pos.sale');
+        Route::post('pos/save-pending', [App\Http\Controllers\POSController::class, 'savePendingSale'])->name('pos.savePending');
 
-    // Pending transaction management
-    Route::post('pending-sales/{pendingSale}/complete', [App\Http\Controllers\POSController::class, 'completePendingSale'])->name('pending-sales.complete');
-    Route::post('pending-sales/{pendingSale}/cancel', [App\Http\Controllers\PendingTransactionsController::class, 'cancel'])->name('pending-sales.cancel');
+        // Pending transaction management
+        Route::get('pending-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'index'])->name('pending-transactions.index');
+        Route::post('pending-sales/{pendingSale}/payment', [App\Http\Controllers\PendingTransactionsController::class, 'addPayment'])->name('pending-sales.payment');
+        Route::get('pending-sales/{pendingSale}/edit', [App\Http\Controllers\PendingTransactionsController::class, 'update'])->name('pending-sales.edit');
+        Route::delete('pending-sales/{pendingSale}', [App\Http\Controllers\PendingTransactionsController::class, 'destroy'])->name('pending-sales.destroy');
+    });
 });
 
 // Reports (accessible by all authenticated users)

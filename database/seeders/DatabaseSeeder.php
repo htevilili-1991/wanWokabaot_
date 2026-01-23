@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ProductSeeder::class);
         $this->call(PendingSaleSeeder::class);
         $this->call(UserRoleSeeder::class);
+        $this->call(UserLocationSeeder::class);
 
         // Create Super Admin user if it doesn't exist
         $superAdmin = User::firstOrCreate(
