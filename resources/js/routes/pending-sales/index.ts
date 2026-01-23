@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\POSController::complete
-* @see app/Http/Controllers/POSController.php:168
+* @see app/Http/Controllers/POSController.php:171
 * @route '/pending-sales/{pendingSale}/complete'
 */
 export const complete = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ complete.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::complete
-* @see app/Http/Controllers/POSController.php:168
+* @see app/Http/Controllers/POSController.php:171
 * @route '/pending-sales/{pendingSale}/complete'
 */
 complete.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ complete.url = (args: { pendingSale: number | { id: number } } | [pendingSale: n
 
 /**
 * @see \App\Http\Controllers\POSController::complete
-* @see app/Http/Controllers/POSController.php:168
+* @see app/Http/Controllers/POSController.php:171
 * @route '/pending-sales/{pendingSale}/complete'
 */
 complete.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ complete.post = (args: { pendingSale: number | { id: number } } | [pendingSale: 
 
 /**
 * @see \App\Http\Controllers\POSController::complete
-* @see app/Http/Controllers/POSController.php:168
+* @see app/Http/Controllers/POSController.php:171
 * @route '/pending-sales/{pendingSale}/complete'
 */
 const completeForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -69,7 +69,7 @@ const completeForm = (args: { pendingSale: number | { id: number } } | [pendingS
 
 /**
 * @see \App\Http\Controllers\POSController::complete
-* @see app/Http/Controllers/POSController.php:168
+* @see app/Http/Controllers/POSController.php:171
 * @route '/pending-sales/{pendingSale}/complete'
 */
 completeForm.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

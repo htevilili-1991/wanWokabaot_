@@ -12,6 +12,8 @@ import { index as rolesPermissionsIndex } from '@/routes/roles-permissions';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { index } from '@/routes/users';
+import { index as systemIndex } from '@/routes/system';
+import { index as locationsIndex } from '@/routes/locations';
 import { type NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
@@ -43,6 +45,16 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Roles & Permissions',
         href: rolesPermissionsIndex(),
+        icon: null,
+    },
+    {
+        title: 'System',
+        href: systemIndex(),
+        icon: null,
+    },
+    {
+        title: 'Locations',
+        href: locationsIndex(),
         icon: null,
     },
 ];

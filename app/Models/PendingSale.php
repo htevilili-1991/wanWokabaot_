@@ -12,6 +12,7 @@ class PendingSale extends Model
     use HasFactory;
 
     protected $fillable = [
+        'location_id',
         'transaction_id',
         'member_id',
         'created_by',
@@ -41,6 +42,11 @@ class PendingSale extends Model
     }
 
     // Relationships
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
@@ -123,7 +129,8 @@ class PendingSale extends Model
         }
 
         // Check member credit limit if applicable
-        if ($this->member_id && $this->member->balance >= 2000) {
+        $creditLimit = Setting::getCreditLimit();
+        if ($this->member_id && $this->member->balance >= $creditLimit) {
             return false; // Credit limit exceeded
         }
 

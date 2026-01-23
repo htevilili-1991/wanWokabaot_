@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\POSController::index
-* @see app/Http/Controllers/POSController.php:18
+* @see app/Http/Controllers/POSController.php:19
 * @route '/pos'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::index
-* @see app/Http/Controllers/POSController.php:18
+* @see app/Http/Controllers/POSController.php:19
 * @route '/pos'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\POSController::index
-* @see app/Http/Controllers/POSController.php:18
+* @see app/Http/Controllers/POSController.php:19
 * @route '/pos'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::index
-* @see app/Http/Controllers/POSController.php:18
+* @see app/Http/Controllers/POSController.php:19
 * @route '/pos'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::index
-* @see app/Http/Controllers/POSController.php:18
+* @see app/Http/Controllers/POSController.php:19
 * @route '/pos'
 */
 const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => (
 
 /**
 * @see \App\Http\Controllers\POSController::index
-* @see app/Http/Controllers/POSController.php:18
+* @see app/Http/Controllers/POSController.php:19
 * @route '/pos'
 */
 indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::index
-* @see app/Http/Controllers/POSController.php:18
+* @see app/Http/Controllers/POSController.php:19
 * @route '/pos'
 */
 indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\POSController::products
-* @see app/Http/Controllers/POSController.php:37
+* @see app/Http/Controllers/POSController.php:38
 * @route '/pos/products'
 */
 export const products = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -97,7 +97,7 @@ products.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::products
-* @see app/Http/Controllers/POSController.php:37
+* @see app/Http/Controllers/POSController.php:38
 * @route '/pos/products'
 */
 products.url = (options?: RouteQueryOptions) => {
@@ -106,7 +106,7 @@ products.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\POSController::products
-* @see app/Http/Controllers/POSController.php:37
+* @see app/Http/Controllers/POSController.php:38
 * @route '/pos/products'
 */
 products.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -116,7 +116,7 @@ products.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::products
-* @see app/Http/Controllers/POSController.php:37
+* @see app/Http/Controllers/POSController.php:38
 * @route '/pos/products'
 */
 products.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -126,7 +126,7 @@ products.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::products
-* @see app/Http/Controllers/POSController.php:37
+* @see app/Http/Controllers/POSController.php:38
 * @route '/pos/products'
 */
 const productsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -136,7 +136,7 @@ const productsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> =
 
 /**
 * @see \App\Http\Controllers\POSController::products
-* @see app/Http/Controllers/POSController.php:37
+* @see app/Http/Controllers/POSController.php:38
 * @route '/pos/products'
 */
 productsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -146,7 +146,7 @@ productsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => 
 
 /**
 * @see \App\Http\Controllers\POSController::products
-* @see app/Http/Controllers/POSController.php:37
+* @see app/Http/Controllers/POSController.php:38
 * @route '/pos/products'
 */
 productsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ products.form = productsForm
 
 /**
 * @see \App\Http\Controllers\POSController::sale
-* @see app/Http/Controllers/POSController.php:51
+* @see app/Http/Controllers/POSController.php:52
 * @route '/pos/sale'
 */
 export const sale = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -178,7 +178,7 @@ sale.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::sale
-* @see app/Http/Controllers/POSController.php:51
+* @see app/Http/Controllers/POSController.php:52
 * @route '/pos/sale'
 */
 sale.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ sale.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\POSController::sale
-* @see app/Http/Controllers/POSController.php:51
+* @see app/Http/Controllers/POSController.php:52
 * @route '/pos/sale'
 */
 sale.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -197,7 +197,7 @@ sale.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::sale
-* @see app/Http/Controllers/POSController.php:51
+* @see app/Http/Controllers/POSController.php:52
 * @route '/pos/sale'
 */
 const saleForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -207,7 +207,7 @@ const saleForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => (
 
 /**
 * @see \App\Http\Controllers\POSController::sale
-* @see app/Http/Controllers/POSController.php:51
+* @see app/Http/Controllers/POSController.php:52
 * @route '/pos/sale'
 */
 saleForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -219,7 +219,7 @@ sale.form = saleForm
 
 /**
 * @see \App\Http\Controllers\POSController::savePending
-* @see app/Http/Controllers/POSController.php:95
+* @see app/Http/Controllers/POSController.php:97
 * @route '/pos/save-pending'
 */
 export const savePending = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -234,7 +234,7 @@ savePending.definition = {
 
 /**
 * @see \App\Http\Controllers\POSController::savePending
-* @see app/Http/Controllers/POSController.php:95
+* @see app/Http/Controllers/POSController.php:97
 * @route '/pos/save-pending'
 */
 savePending.url = (options?: RouteQueryOptions) => {
@@ -243,7 +243,7 @@ savePending.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\POSController::savePending
-* @see app/Http/Controllers/POSController.php:95
+* @see app/Http/Controllers/POSController.php:97
 * @route '/pos/save-pending'
 */
 savePending.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -253,7 +253,7 @@ savePending.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\POSController::savePending
-* @see app/Http/Controllers/POSController.php:95
+* @see app/Http/Controllers/POSController.php:97
 * @route '/pos/save-pending'
 */
 const savePendingForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -263,7 +263,7 @@ const savePendingForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\POSController::savePending
-* @see app/Http/Controllers/POSController.php:95
+* @see app/Http/Controllers/POSController.php:97
 * @route '/pos/save-pending'
 */
 savePendingForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

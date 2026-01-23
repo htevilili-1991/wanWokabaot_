@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Location;
 use App\Models\Member;
 use App\Models\PendingSale;
 use App\Models\Product;
@@ -19,8 +20,9 @@ class PendingSaleSeeder extends Seeder
         $members = Member::all();
         $products = Product::all();
         $users = User::all();
+        $locations = Location::active()->get();
 
-        if ($members->isEmpty() || $products->isEmpty() || $users->isEmpty()) {
+        if ($members->isEmpty() || $products->isEmpty() || $users->isEmpty() || $locations->isEmpty()) {
             return; // Skip if no data exists
         }
 
@@ -28,6 +30,7 @@ class PendingSaleSeeder extends Seeder
         for ($i = 0; $i < 150; $i++) {
             $member = $members->random();
             $user = $users->random();
+            $location = $locations->random();
             $numItems = rand(1, 8);
 
             $cart = [];
@@ -58,6 +61,7 @@ class PendingSaleSeeder extends Seeder
             $paymentMethod = rand(1, 10) <= 7 ? 'cash' : 'pay_later';
 
             PendingSale::create([
+                'location_id' => $location->id,
                 'member_id' => $member->id,
                 'created_by' => $user->id,
                 'items' => $cart,

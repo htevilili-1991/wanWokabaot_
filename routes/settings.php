@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Settings\LocationController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\RolePermissionController;
+use App\Http\Controllers\Settings\SystemSettingsController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use App\Http\Controllers\Settings\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -45,5 +47,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('settings/roles-permissions/{role}', [RolePermissionController::class, 'destroy'])->name('roles-permissions.destroy');
         Route::post('settings/roles-permissions/assign', [RolePermissionController::class, 'assignRole'])->name('roles-permissions.assign');
         Route::post('settings/roles-permissions/remove', [RolePermissionController::class, 'removeRole'])->name('roles-permissions.remove');
+
+        // System Settings (Super Admin only)
+        Route::get('settings/system', [SystemSettingsController::class, 'index'])->name('system.index');
+        Route::put('settings/system', [SystemSettingsController::class, 'update'])->name('system.update');
+
+        // Location Management (Super Admin only)
+        Route::resource('settings/locations', LocationController::class)->names([
+            'index' => 'locations.index',
+            'create' => 'locations.create',
+            'store' => 'locations.store',
+            'show' => 'locations.show',
+            'edit' => 'locations.edit',
+            'update' => 'locations.update',
+            'destroy' => 'locations.destroy',
+        ]);
+        Route::patch('settings/locations/{location}/toggle', [LocationController::class, 'toggle'])->name('locations.toggle');
     });
 });

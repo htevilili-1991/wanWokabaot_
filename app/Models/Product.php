@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
     protected $fillable = [
+        'location_id',
         'name',
         'category',
         'cost_price',
@@ -40,6 +42,14 @@ class Product extends Model
     }
 
     /**
+     * Get the location this product belongs to
+     */
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
+    }
+
+    /**
      * Get the profit margin for this product.
      */
     public function getProfitMargin(): float
@@ -49,5 +59,13 @@ class Product extends Model
         }
 
         return (($this->selling_price - $this->cost_price) / $this->cost_price) * 100;
+    }
+
+    /**
+     * Scope products by location
+     */
+    public function scopeByLocation($query, $locationId)
+    {
+        return $query->where('location_id', $locationId);
     }
 }

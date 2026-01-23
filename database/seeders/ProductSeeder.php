@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Location;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
 
@@ -311,8 +312,18 @@ class ProductSeeder extends Seeder
             ],
         ];
 
+        // Get the default location (Main Store)
+        $defaultLocation = Location::where('name', 'Main Store')->first();
+
+        if (!$defaultLocation) {
+            // If no default location exists, skip product seeding
+            return;
+        }
+
         foreach ($products as $product) {
-            Product::create($product);
+            Product::create(array_merge($product, [
+                'location_id' => $defaultLocation->id,
+            ]));
         }
     }
 }

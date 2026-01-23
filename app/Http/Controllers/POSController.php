@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use App\Models\PendingSale;
 use App\Models\Product;
+use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,8 +67,9 @@ class POSController extends Controller
         // Check member balance if paying later
         if ($memberId && $paymentMethod === 'pay_later') {
             $member = Member::find($memberId);
-            if ($member->balance >= 2000) {
-                return back()->with('error', 'Member cannot purchase: unpaid amount is 2000 VT or more.');
+            $creditLimit = Setting::getCreditLimit();
+            if ($member->balance >= $creditLimit) {
+                return back()->with('error', "Member cannot purchase: unpaid amount is {$creditLimit} VT or more.");
             }
             $member->balance += $total;
             $member->save();
@@ -126,8 +128,9 @@ class POSController extends Controller
 
             // Update member balance immediately for pay later transactions
             if ($paymentMethod === 'pay_later') {
-                if ($member->balance >= 2000) {
-                    return back()->with('error', 'Member cannot purchase: unpaid amount is 2000 VT or more.');
+                $creditLimit = Setting::getCreditLimit();
+                if ($member->balance >= $creditLimit) {
+                    return back()->with('error', "Member cannot purchase: unpaid amount is {$creditLimit} VT or more.");
                 }
                 $member->balance += $total;
                 $member->save();
