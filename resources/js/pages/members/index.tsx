@@ -1,7 +1,8 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { useState, useMemo, FormEventHandler } from 'react';
+import { ChevronDown, ChevronUp, Search, Trash2 } from 'lucide-react';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import Heading from '@/components/heading';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,46 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
     const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+    const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+
+    const isAllSelected = useMemo(() => {
+        return members.data.length > 0 && selectedMembers.length === members.data.length;
+    }, [members.data, selectedMembers]);
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedMembers(members.data.map((member) => member.id));
+        } else {
+            setSelectedMembers([]);
+        }
+    };
+
+    const handleSelectMember = (memberId: number, checked: boolean) => {
+        setSelectedMembers((prevSelected) =>
+            checked
+                ? [...prevSelected, memberId]
+                : prevSelected.filter((id) => id !== memberId)
+        );
+    };
+
+    const bulkDeleteMembers = () => {
+        router.delete(destroy().url, {
+            data: { ids: selectedMembers },
+            onSuccess: () => {
+                setSelectedMembers([]);
+                setDeletePopoverOpen(false); // Close the bulk delete confirmation if it's open
+                router.reload(); // Reload members list
+            },
+            onError: () => {
+                setDeletePopoverOpen(false);
+            },
+        });
+    };
+
+    const triggerBulkDelete = () => {
+        setDeletePopoverOpen(true); // Open the general delete confirmation for bulk delete
+        // The confirmDelete function will need to be adapted for bulk delete as well
+    };
 
     const createForm = useForm({
         name: '',
@@ -162,7 +203,7 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
         e.preventDefault();
 
         editForm.put(update(editForm.data.id), {
-            onFinish: () => {
+            onSuccess: () => {
                 editForm.reset();
                 setIsEditDialogOpen(false);
             },
@@ -199,8 +240,8 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
             join_date: member.join_date,
             status: member.status,
             notes: member.notes || '',
-            total_spent: member.total_spent.toString(),
-            balance: member.balance.toString(),
+            total_spent: (member.total_spent ?? 0).toString(),
+            balance: (member.balance ?? 0).toString(),
         });
         setIsEditDialogOpen(true);
     };
@@ -503,7 +544,7 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
-                                                <Dialog>
+                                                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                                                     <DialogTrigger asChild>
                                                         <Button size="sm" variant="outline" onClick={() => startEdit(member)}>
                                                             Edit

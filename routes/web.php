@@ -53,7 +53,6 @@ Route::middleware(['auth'])->group(function () {
 
     // View-only inventory routes for Members
     Route::get('inventory', [App\Http\Controllers\InventoryController::class, 'index'])->name('inventory.index');
-    Route::get('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'show'])->name('inventory.show');
 
     // View pending transactions for Members
     Route::get('pending-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'index'])->name('pending-transactions.index');
@@ -72,8 +71,11 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
 
     // Full inventory management (location-restricted)
     Route::middleware(['restrict.locations'])->group(function () {
+        Route::post('inventory/import', [App\Http\Controllers\InventoryController::class, 'importExcel'])->name('inventory.import');
+        Route::get('inventory/export-sample', [App\Http\Controllers\InventoryController::class, 'exportSampleExcel'])->name('inventory.exportSample');
         Route::get('inventory/create', [App\Http\Controllers\InventoryController::class, 'create'])->name('inventory.create');
         Route::post('inventory', [App\Http\Controllers\InventoryController::class, 'store'])->name('inventory.store');
+        Route::get('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'show'])->name('inventory.show'); // Moved from global group
         Route::get('inventory/{product}/edit', [App\Http\Controllers\InventoryController::class, 'edit'])->name('inventory.edit');
         Route::put('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'update'])->name('inventory.update');
         Route::delete('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');

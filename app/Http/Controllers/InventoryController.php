@@ -6,6 +6,9 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\InventoryImport; # Will create this class later
+use App\Exports\ProductsExport; # Will create this class later
 
 class InventoryController extends Controller
 {
@@ -143,5 +146,31 @@ class InventoryController extends Controller
         $product->delete();
 
         return Redirect::route('inventory.index')->with('success', 'Product deleted successfully.');
+    }
+
+    /**
+     * Import products from an Excel file.
+     */
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        try {
+            Excel::import(new InventoryImport, $request->file('file'));
+
+            return Redirect::back()->with('success', 'Inventory imported successfully!');
+        } catch (\Exception $e) {
+            return Redirect::back()->with('error', 'Error importing inventory: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export a sample Excel file for inventory import.
+     */
+    public function exportSampleExcel()
+    {
+        return Excel::download(new ProductsExport, 'inventory_sample.xlsx');
     }
 }

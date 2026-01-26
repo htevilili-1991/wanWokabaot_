@@ -71,8 +71,8 @@ class MemberController extends Controller
             'join_date' => ['required', 'date'],
             'status' => ['required', 'string', 'in:Active,Inactive,Suspended'],
             'notes' => ['nullable', 'string'],
-            'total_spent' => ['nullable', 'numeric', 'min:0'],
-            'balance' => ['nullable', 'numeric', 'min:0'],
+            'total_spent' => ['numeric', 'min:0'],
+            'balance' => ['numeric', 'min:0'],
         ]);
 
         Member::create($validated);
@@ -113,8 +113,8 @@ class MemberController extends Controller
             'join_date' => ['required', 'date'],
             'status' => ['required', 'string', 'in:Active,Inactive,Suspended'],
             'notes' => ['nullable', 'string'],
-            'total_spent' => ['nullable', 'numeric', 'min:0'],
-            'balance' => ['nullable', 'numeric', 'min:0'],
+            'total_spent' => ['numeric', 'min:0'],
+            'balance' => ['numeric', 'min:0'],
         ]);
 
         $member->update($validated);

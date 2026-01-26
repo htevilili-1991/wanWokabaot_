@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class Member extends Model
 {
+    protected $appends = ['unpaid_total'];
+
     protected $fillable = [
         'name',
         'email',

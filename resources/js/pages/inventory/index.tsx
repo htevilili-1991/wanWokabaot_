@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DeleteConfirmationPopover } from '@/components/delete-confirmation-popover';
 import { destroy, index, store, update } from '@/routes/inventory';
+import inventory from '@/routes/inventory';
 import { type SharedData } from '@/types';
 
 interface Product {
@@ -63,6 +64,7 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
     const createForm = useForm({
         name: '',
@@ -83,6 +85,10 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
         current_stock: '',
         minimum_stock: '',
         description: '',
+    });
+
+    const importForm = useForm({
+        file: null as File | null,
     });
 
     // Debounced search
@@ -196,6 +202,21 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
         setIsEditDialogOpen(true);
     };
 
+    const handleExcelImport: FormEventHandler = (e) => {
+        e.preventDefault();
+
+        importForm.post(inventory.importMethod().url, {
+            onSuccess: () => {
+                importForm.reset();
+                setIsImportDialogOpen(false);
+                router.reload();
+            },
+            onError: () => {
+                // Errors will be displayed automatically by Inertia
+            },
+        });
+    };
+
     const formatCurrency = (amount: number | string) => {
         const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
         return `${numAmount.toFixed(2)} VT`;
@@ -226,110 +247,157 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
             <Head title="Inventory" />
 
             <div className="space-y-6 p-6">
-                <div className="flex items-center justify-between">
-                    <Heading
-                        title="Inventory Management"
-                        description="Manage products, pricing, and stock levels"
-                    />
+                    <div className="flex items-center justify-between">
+                        <Heading
+                            title="Inventory Management"
+                            description="Manage products, pricing, and stock levels"
+                        />
 
-                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button>Add Product</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>Add New Product</DialogTitle>
-                                <DialogDescription>
-                                    Create a new product with pricing and stock information.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={submitCreate} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="md:col-span-2">
-                                        <Label htmlFor="name">Product Name *</Label>
-                                        <Input
-                                            id="name"
-                                            type="text"
-                                            value={createForm.data.name}
-                                            onChange={(e) => createForm.setData('name', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="category">Category *</Label>
-                                        <Input
-                                            id="category"
-                                            type="text"
-                                            value={createForm.data.category}
-                                            onChange={(e) => createForm.setData('category', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="cost_price">Cost Price (VT) *</Label>
-                                        <Input
-                                            id="cost_price"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={createForm.data.cost_price}
-                                            onChange={(e) => createForm.setData('cost_price', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="selling_price">Selling Price (VT) *</Label>
-                                        <Input
-                                            id="selling_price"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={createForm.data.selling_price}
-                                            onChange={(e) => createForm.setData('selling_price', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="current_stock">Current Stock *</Label>
-                                        <Input
-                                            id="current_stock"
-                                            type="number"
-                                            min="0"
-                                            value={createForm.data.current_stock}
-                                            onChange={(e) => createForm.setData('current_stock', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="minimum_stock">Minimum Stock *</Label>
-                                        <Input
-                                            id="minimum_stock"
-                                            type="number"
-                                            min="0"
-                                            value={createForm.data.minimum_stock}
-                                            onChange={(e) => createForm.setData('minimum_stock', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <Label htmlFor="description">Description</Label>
-                                        <textarea
-                                            id="description"
-                                            value={createForm.data.description}
-                                            onChange={(e) => createForm.setData('description', e.target.value)}
-                                            className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                            rows={3}
-                                        />
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button type="submit" disabled={createForm.processing}>
-                                        Create Product
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                        <div className="flex gap-2">
+                            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button>Add Product</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                                    <DialogHeader>
+                                        <DialogTitle>Add New Product</DialogTitle>
+                                        <DialogDescription>
+                                            Create a new product with pricing and stock information.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <form onSubmit={submitCreate} className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="md:col-span-2">
+                                                <Label htmlFor="name">Product Name *</Label>
+                                                <Input
+                                                    id="name"
+                                                    type="text"
+                                                    value={createForm.data.name}
+                                                    onChange={(e) => createForm.setData('name', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="category">Category *</Label>
+                                                <Input
+                                                    id="category"
+                                                    type="text"
+                                                    value={createForm.data.category}
+                                                    onChange={(e) => createForm.setData('category', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="cost_price">Cost Price (VT) *</Label>
+                                                <Input
+                                                    id="cost_price"
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={createForm.data.cost_price}
+                                                    onChange={(e) => createForm.setData('cost_price', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="selling_price">Selling Price (VT) *</Label>
+                                                <Input
+                                                    id="selling_price"
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={createForm.data.selling_price}
+                                                    onChange={(e) => createForm.setData('selling_price', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="current_stock">Current Stock *</Label>
+                                                <Input
+                                                    id="current_stock"
+                                                    type="number"
+                                                    min="0"
+                                                    value={createForm.data.current_stock}
+                                                    onChange={(e) => createForm.setData('current_stock', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="minimum_stock">Minimum Stock *</Label>
+                                                <Input
+                                                    id="minimum_stock"
+                                                    type="number"
+                                                    min="0"
+                                                    value={createForm.data.minimum_stock}
+                                                    onChange={(e) => createForm.setData('minimum_stock', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <Label htmlFor="description">Description</Label>
+                                                <textarea
+                                                    id="description"
+                                                    value={createForm.data.description}
+                                                    onChange={(e) => createForm.setData('description', e.target.value)}
+                                                    className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    rows={3}
+                                                />
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button type="submit" disabled={createForm.processing}>
+                                                Create Product
+                                            </Button>
+                                        </DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                            <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline">Import Excel</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                        <DialogTitle>Import Products from Excel</DialogTitle>
+                                        <DialogDescription>
+                                            Upload an Excel file (.xlsx or .xls) to import or update products.
+                                        </DialogDescription>
+                                        <p className="text-sm text-gray-500 mt-2">
+                                            <a
+                                                href={inventory.exportSample().url}
+                                                target="_blank"
+                                                className="text-blue-600 hover:text-blue-800 underline"
+                                            >
+                                                Download sample Excel format
+                                            </a>
+                                            before uploading.
+                                        </p>
+                                    </DialogHeader>
+                                    <form
+                                        onSubmit={handleExcelImport}
+                                        className="grid gap-4 py-4"
+                                        encType="multipart/form-data"
+                                    >
+                                        <div className="grid items-center gap-4">
+                                            <Label htmlFor="excel_file" className="text-left">
+                                                Excel File
+                                            </Label>
+                                            <Input
+                                                id="excel_file"
+                                                type="file"
+                                                accept=".xlsx, .xls"
+                                                onChange={(e) => importForm.setData('file', e.target.files ? e.target.files[0] : null)}
+                                                required
+                                            />
+                                            {importForm.errors.file && <div className="text-red-500 text-sm">{importForm.errors.file}</div>}
+                                        </div>
+                                        <DialogFooter>
+                                            <Button type="submit" disabled={importForm.processing}>Import</Button>
+                                        </DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                 </div>
 
                 {/* Search and Filters */}
