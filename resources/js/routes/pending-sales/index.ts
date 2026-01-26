@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults, validateParameters } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::payment
 * @see app/Http/Controllers/PendingTransactionsController.php:76
@@ -185,26 +185,92 @@ editForm.head = (args: { pendingSale: number | { id: number } } | [pendingSale: 
 edit.form = editForm
 
 /**
+* @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/bulk-delete'
+*/
+export const bulkDestroy = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: bulkDestroy.url(options),
+    method: 'delete',
+})
+
+bulkDestroy.definition = {
+    methods: ["delete"],
+    url: '/pending-sales/bulk-delete',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/bulk-delete'
+*/
+bulkDestroy.url = (options?: RouteQueryOptions) => {
+    return bulkDestroy.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/bulk-delete'
+*/
+bulkDestroy.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: bulkDestroy.url(options),
+    method: 'delete',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/bulk-delete'
+*/
+const bulkDestroyForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: bulkDestroy.url({
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
+* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @route '/pending-sales/bulk-delete'
+*/
+bulkDestroyForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: bulkDestroy.url({
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+bulkDestroy.form = bulkDestroyForm
+
+/**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
 * @see app/Http/Controllers/PendingTransactionsController.php:140
-* @route '/pending-sales/{pendingSale}'
+* @route '/pending-sales/{pendingSale?}'
 */
-export const destroy = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
 
 destroy.definition = {
     methods: ["delete"],
-    url: '/pending-sales/{pendingSale}',
+    url: '/pending-sales/{pendingSale?}',
 } satisfies RouteDefinition<["delete"]>
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
 * @see app/Http/Controllers/PendingTransactionsController.php:140
-* @route '/pending-sales/{pendingSale}'
+* @route '/pending-sales/{pendingSale?}'
 */
-destroy.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { pendingSale: args }
     }
@@ -221,23 +287,27 @@ destroy.url = (args: { pendingSale: number | { id: number } } | [pendingSale: nu
 
     args = applyUrlDefaults(args)
 
+    validateParameters(args, [
+        "pendingSale",
+    ])
+
     const parsedArgs = {
-        pendingSale: typeof args.pendingSale === 'object'
+        pendingSale: typeof args?.pendingSale === 'object'
         ? args.pendingSale.id
-        : args.pendingSale,
+        : args?.pendingSale,
     }
 
     return destroy.definition.url
-            .replace('{pendingSale}', parsedArgs.pendingSale.toString())
+            .replace('{pendingSale?}', parsedArgs.pendingSale?.toString() ?? '')
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
 * @see app/Http/Controllers/PendingTransactionsController.php:140
-* @route '/pending-sales/{pendingSale}'
+* @route '/pending-sales/{pendingSale?}'
 */
-destroy.delete = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -245,9 +315,9 @@ destroy.delete = (args: { pendingSale: number | { id: number } } | [pendingSale:
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
 * @see app/Http/Controllers/PendingTransactionsController.php:140
-* @route '/pending-sales/{pendingSale}'
+* @route '/pending-sales/{pendingSale?}'
 */
-const destroyForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+const destroyForm = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
     action: destroy.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
             _method: 'DELETE',
@@ -260,9 +330,9 @@ const destroyForm = (args: { pendingSale: number | { id: number } } | [pendingSa
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
 * @see app/Http/Controllers/PendingTransactionsController.php:140
-* @route '/pending-sales/{pendingSale}'
+* @route '/pending-sales/{pendingSale?}'
 */
-destroyForm.delete = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+destroyForm.delete = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
     action: destroy.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
             _method: 'DELETE',
@@ -277,6 +347,7 @@ destroy.form = destroyForm
 const pendingSales = {
     payment: Object.assign(payment, payment),
     edit: Object.assign(edit, edit),
+    bulkDestroy: Object.assign(bulkDestroy, bulkDestroy),
     destroy: Object.assign(destroy, destroy),
 }
 

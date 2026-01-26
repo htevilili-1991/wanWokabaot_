@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults, validateParameters } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\MemberController::index
 * @see app/Http/Controllers/MemberController.php:16
@@ -520,24 +520,24 @@ update.form = updateForm
 /**
 * @see \App\Http\Controllers\MemberController::destroy
 * @see app/Http/Controllers/MemberController.php:128
-* @route '/members/{member}'
+* @route '/members/{member?}'
 */
-export const destroy = (args: { member: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args?: { member?: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
 
 destroy.definition = {
     methods: ["delete"],
-    url: '/members/{member}',
+    url: '/members/{member?}',
 } satisfies RouteDefinition<["delete"]>
 
 /**
 * @see \App\Http\Controllers\MemberController::destroy
 * @see app/Http/Controllers/MemberController.php:128
-* @route '/members/{member}'
+* @route '/members/{member?}'
 */
-destroy.url = (args: { member: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args?: { member?: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { member: args }
     }
@@ -554,23 +554,27 @@ destroy.url = (args: { member: number | { id: number } } | [member: number | { i
 
     args = applyUrlDefaults(args)
 
+    validateParameters(args, [
+        "member",
+    ])
+
     const parsedArgs = {
-        member: typeof args.member === 'object'
+        member: typeof args?.member === 'object'
         ? args.member.id
-        : args.member,
+        : args?.member,
     }
 
     return destroy.definition.url
-            .replace('{member}', parsedArgs.member.toString())
+            .replace('{member?}', parsedArgs.member?.toString() ?? '')
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\MemberController::destroy
 * @see app/Http/Controllers/MemberController.php:128
-* @route '/members/{member}'
+* @route '/members/{member?}'
 */
-destroy.delete = (args: { member: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args?: { member?: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -578,9 +582,9 @@ destroy.delete = (args: { member: number | { id: number } } | [member: number | 
 /**
 * @see \App\Http\Controllers\MemberController::destroy
 * @see app/Http/Controllers/MemberController.php:128
-* @route '/members/{member}'
+* @route '/members/{member?}'
 */
-const destroyForm = (args: { member: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+const destroyForm = (args?: { member?: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
     action: destroy.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
             _method: 'DELETE',
@@ -593,9 +597,9 @@ const destroyForm = (args: { member: number | { id: number } } | [member: number
 /**
 * @see \App\Http\Controllers\MemberController::destroy
 * @see app/Http/Controllers/MemberController.php:128
-* @route '/members/{member}'
+* @route '/members/{member?}'
 */
-destroyForm.delete = (args: { member: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+destroyForm.delete = (args?: { member?: number | { id: number } } | [member: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
     action: destroy.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
             _method: 'DELETE',

@@ -141,11 +141,23 @@ class InventoryController extends Controller
     /**
      * Remove the specified product.
      */
-    public function destroy(Product $product)
+    public function destroy(Request $request, Product $product = null)
     {
-        $product->delete();
+        // If a single product is passed via route model binding
+        if ($product) {
+            $product->delete();
+            return Redirect::route('inventory.index')->with('success', 'Product deleted successfully.');
+        }
 
-        return Redirect::route('inventory.index')->with('success', 'Product deleted successfully.');
+        // Handle bulk deletion
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['required', 'integer', 'exists:products,id'],
+        ]);
+
+        Product::whereIn('id', $validated['ids'])->delete();
+
+        return Redirect::route('inventory.index')->with('success', 'Selected products deleted successfully.');
     }
 
     /**

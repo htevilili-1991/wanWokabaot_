@@ -216,18 +216,32 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
     };
 
     const confirmDelete = () => {
-        if (!memberToDelete) return;
-
-        router.delete(destroy(memberToDelete.id).url, {
-            onSuccess: () => {
-                setDeletePopoverOpen(false);
-                setMemberToDelete(null);
-            },
-            onError: () => {
-                setDeletePopoverOpen(false);
-                setMemberToDelete(null);
-            },
-        });
+        if (selectedMembers.length > 0) {
+            // Bulk delete
+            router.delete(destroy().url, {
+                data: { ids: selectedMembers },
+                onSuccess: () => {
+                    setSelectedMembers([]);
+                    setDeletePopoverOpen(false);
+                    router.reload();
+                },
+                onError: () => {
+                    setDeletePopoverOpen(false);
+                },
+            });
+        } else if (memberToDelete) {
+            // Single delete
+            router.delete(destroy(memberToDelete.id).url, {
+                onSuccess: () => {
+                    setDeletePopoverOpen(false);
+                    setMemberToDelete(null);
+                },
+                onError: () => {
+                    setDeletePopoverOpen(false);
+                    setMemberToDelete(null);
+                },
+            });
+        }
     };
 
     const startEdit = (member: Member) => {
@@ -280,123 +294,135 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
                         description="Manage member information, balances, and status"
                     />
 
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button>Add Member</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>Add New Member</DialogTitle>
-                                <DialogDescription>
-                                    Create a new member record with their details.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={submitCreate} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label htmlFor="name">Name *</Label>
-                                        <Input
-                                            id="name"
-                                            type="text"
-                                            value={createForm.data.name}
-                                            onChange={(e) => createForm.setData('name', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="email">Email *</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            value={createForm.data.email}
-                                            onChange={(e) => createForm.setData('email', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="phone">Phone</Label>
-                                        <Input
-                                            id="phone"
-                                            type="tel"
-                                            value={createForm.data.phone}
-                                            onChange={(e) => createForm.setData('phone', e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="member_code">Member Code</Label>
-                                        <Input
-                                            id="member_code"
-                                            type="text"
-                                            value={createForm.data.member_code}
-                                            onChange={(e) => createForm.setData('member_code', e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="join_date">Join Date *</Label>
-                                        <Input
-                                            id="join_date"
-                                            type="date"
-                                            value={createForm.data.join_date}
-                                            onChange={(e) => createForm.setData('join_date', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="status">Status *</Label>
-                                        <Select
-                                            value={createForm.data.status}
-                                            onValueChange={(value) => createForm.setData('status', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select status" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Active">Active</SelectItem>
-                                                <SelectItem value="Inactive">Inactive</SelectItem>
-                                                <SelectItem value="Suspended">Suspended</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <Label htmlFor="notes">Notes</Label>
-                                        <textarea
-                                            id="notes"
-                                            name="notes"
-                                            value={createForm.data.notes}
-                                            onChange={(e) => createForm.setData('notes', e.target.value)}
-                                            className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                            rows={3}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="total_spent">Total Spent (VT)</Label>
-                                        <Input
-                                            id="total_spent"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={createForm.data.total_spent}
-                                            onChange={(e) => createForm.setData('total_spent', e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="balance">Balance (VT)</Label>
-                                        <Input
-                                            id="balance"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={createForm.data.balance}
-                                            onChange={(e) => createForm.setData('balance', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button type="submit">Create Member</Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                        <div className="flex gap-2">
+                            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button>Add Member</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                                    <DialogHeader>
+                                        <DialogTitle>Add New Member</DialogTitle>
+                                        <DialogDescription>
+                                            Create a new member record with their details.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <form onSubmit={submitCreate} className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <Label htmlFor="name">Name *</Label>
+                                                <Input
+                                                    id="name"
+                                                    type="text"
+                                                    value={createForm.data.name}
+                                                    onChange={(e) => createForm.setData('name', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="email">Email *</Label>
+                                                <Input
+                                                    id="email"
+                                                    type="email"
+                                                    value={createForm.data.email}
+                                                    onChange={(e) => createForm.setData('email', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="phone">Phone</Label>
+                                                <Input
+                                                    id="phone"
+                                                    type="tel"
+                                                    value={createForm.data.phone}
+                                                    onChange={(e) => createForm.setData('phone', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="member_code">Member Code</Label>
+                                                <Input
+                                                    id="member_code"
+                                                    type="text"
+                                                    value={createForm.data.member_code}
+                                                    onChange={(e) => createForm.setData('member_code', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="join_date">Join Date *</Label>
+                                                <Input
+                                                    id="join_date"
+                                                    type="date"
+                                                    value={createForm.data.join_date}
+                                                    onChange={(e) => createForm.setData('join_date', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="status">Status *</Label>
+                                                <Select
+                                                    value={createForm.data.status}
+                                                    onValueChange={(value) => createForm.setData('status', value)}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Active">Active</SelectItem>
+                                                        <SelectItem value="Inactive">Inactive</SelectItem>
+                                                        <SelectItem value="Suspended">Suspended</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <Label htmlFor="notes">Notes</Label>
+                                                <textarea
+                                                    id="notes"
+                                                    name="notes"
+                                                    value={createForm.data.notes}
+                                                    onChange={(e) => createForm.setData('notes', e.target.value)}
+                                                    className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    rows={3}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="total_spent">Total Spent (VT)</Label>
+                                                <Input
+                                                    id="total_spent"
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={createForm.data.total_spent}
+                                                    onChange={(e) => createForm.setData('total_spent', e.target.value)}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="balance">Balance (VT)</Label>
+                                                <Input
+                                                    id="balance"
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={createForm.data.balance}
+                                                    onChange={(e) => createForm.setData('balance', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button type="submit">Create Member</Button>
+                                        </DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                            {selectedMembers.length > 0 && (
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => setDeletePopoverOpen(true)}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete Selected ({selectedMembers.length})
+                                </Button>
+                            )}
+                        </div>
                 </div>
 
                 {/* Search and Filters */}
@@ -442,6 +468,13 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-16">
+                                        <Checkbox
+                                            checked={isAllSelected}
+                                            onCheckedChange={handleSelectAll}
+                                            aria-label="Select all members"
+                                        />
+                                    </TableHead>
                                     <TableHead
                                         className="cursor-pointer hover:bg-gray-50"
                                         onClick={() => handleSort('name')}
@@ -526,6 +559,13 @@ export default function MembersIndex({ members, filters }: MembersPageProps) {
                             <TableBody>
                                 {members.data.map((member) => (
                                     <TableRow key={member.id}>
+                                        <TableCell>
+                                            <Checkbox
+                                                checked={selectedMembers.includes(member.id)}
+                                                onCheckedChange={(checked) => handleSelectMember(member.id, checked as boolean)}
+                                                aria-label={`Select member ${member.name}`}
+                                            />
+                                        </TableCell>
                                         <TableCell className="font-medium">{member.name}</TableCell>
                                         <TableCell>{member.email}</TableCell>
                                         <TableCell>{member.phone || '-'}</TableCell>

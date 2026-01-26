@@ -67,7 +67,7 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
     Route::post('members', [App\Http\Controllers\MemberController::class, 'store'])->name('members.store');
     Route::get('members/{member}/edit', [App\Http\Controllers\MemberController::class, 'edit'])->name('members.edit');
     Route::put('members/{member}', [App\Http\Controllers\MemberController::class, 'update'])->name('members.update');
-    Route::delete('members/{member}', [App\Http\Controllers\MemberController::class, 'destroy'])->name('members.destroy');
+    Route::delete('members/{member?}', [App\Http\Controllers\MemberController::class, 'destroy'])->name('members.destroy');
 
     // Full inventory management (location-restricted)
     Route::middleware(['restrict.locations'])->group(function () {
@@ -78,7 +78,7 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
         Route::get('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'show'])->name('inventory.show'); // Moved from global group
         Route::get('inventory/{product}/edit', [App\Http\Controllers\InventoryController::class, 'edit'])->name('inventory.edit');
         Route::put('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'update'])->name('inventory.update');
-        Route::delete('inventory/{product}', [App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::delete('inventory/{product?}', [App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
     });
 
     // POS operations (location-restricted)
@@ -92,7 +92,8 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
         Route::get('pending-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'index'])->name('pending-transactions.index');
         Route::post('pending-sales/{pendingSale}/payment', [App\Http\Controllers\PendingTransactionsController::class, 'addPayment'])->name('pending-sales.payment');
         Route::get('pending-sales/{pendingSale}/edit', [App\Http\Controllers\PendingTransactionsController::class, 'update'])->name('pending-sales.edit');
-        Route::delete('pending-sales/{pendingSale}', [App\Http\Controllers\PendingTransactionsController::class, 'destroy'])->name('pending-sales.destroy');
+        Route::delete('pending-sales/bulk-delete', [App\Http\Controllers\PendingTransactionsController::class, 'destroy'])->name('pending-sales.bulk-destroy');
+        Route::delete('pending-sales/{pendingSale?}', [App\Http\Controllers\PendingTransactionsController::class, 'destroy'])->name('pending-sales.destroy');
     });
 });
 

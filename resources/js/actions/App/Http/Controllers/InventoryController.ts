@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults, validateParameters } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\InventoryController::index
 * @see app/Http/Controllers/InventoryController.php:18
@@ -82,7 +82,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\InventoryController::importExcel
-* @see app/Http/Controllers/InventoryController.php:154
+* @see app/Http/Controllers/InventoryController.php:166
 * @route '/inventory/import'
 */
 export const importExcel = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -97,7 +97,7 @@ importExcel.definition = {
 
 /**
 * @see \App\Http\Controllers\InventoryController::importExcel
-* @see app/Http/Controllers/InventoryController.php:154
+* @see app/Http/Controllers/InventoryController.php:166
 * @route '/inventory/import'
 */
 importExcel.url = (options?: RouteQueryOptions) => {
@@ -106,7 +106,7 @@ importExcel.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\InventoryController::importExcel
-* @see app/Http/Controllers/InventoryController.php:154
+* @see app/Http/Controllers/InventoryController.php:166
 * @route '/inventory/import'
 */
 importExcel.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -116,7 +116,7 @@ importExcel.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\InventoryController::importExcel
-* @see app/Http/Controllers/InventoryController.php:154
+* @see app/Http/Controllers/InventoryController.php:166
 * @route '/inventory/import'
 */
 const importExcelForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -126,7 +126,7 @@ const importExcelForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\InventoryController::importExcel
-* @see app/Http/Controllers/InventoryController.php:154
+* @see app/Http/Controllers/InventoryController.php:166
 * @route '/inventory/import'
 */
 importExcelForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -138,7 +138,7 @@ importExcel.form = importExcelForm
 
 /**
 * @see \App\Http\Controllers\InventoryController::exportSampleExcel
-* @see app/Http/Controllers/InventoryController.php:172
+* @see app/Http/Controllers/InventoryController.php:184
 * @route '/inventory/export-sample'
 */
 export const exportSampleExcel = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -153,7 +153,7 @@ exportSampleExcel.definition = {
 
 /**
 * @see \App\Http\Controllers\InventoryController::exportSampleExcel
-* @see app/Http/Controllers/InventoryController.php:172
+* @see app/Http/Controllers/InventoryController.php:184
 * @route '/inventory/export-sample'
 */
 exportSampleExcel.url = (options?: RouteQueryOptions) => {
@@ -162,7 +162,7 @@ exportSampleExcel.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\InventoryController::exportSampleExcel
-* @see app/Http/Controllers/InventoryController.php:172
+* @see app/Http/Controllers/InventoryController.php:184
 * @route '/inventory/export-sample'
 */
 exportSampleExcel.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -172,7 +172,7 @@ exportSampleExcel.get = (options?: RouteQueryOptions): RouteDefinition<'get'> =>
 
 /**
 * @see \App\Http\Controllers\InventoryController::exportSampleExcel
-* @see app/Http/Controllers/InventoryController.php:172
+* @see app/Http/Controllers/InventoryController.php:184
 * @route '/inventory/export-sample'
 */
 exportSampleExcel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -182,7 +182,7 @@ exportSampleExcel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> 
 
 /**
 * @see \App\Http\Controllers\InventoryController::exportSampleExcel
-* @see app/Http/Controllers/InventoryController.php:172
+* @see app/Http/Controllers/InventoryController.php:184
 * @route '/inventory/export-sample'
 */
 const exportSampleExcelForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -192,7 +192,7 @@ const exportSampleExcelForm = (options?: RouteQueryOptions): RouteFormDefinition
 
 /**
 * @see \App\Http\Controllers\InventoryController::exportSampleExcel
-* @see app/Http/Controllers/InventoryController.php:172
+* @see app/Http/Controllers/InventoryController.php:184
 * @route '/inventory/export-sample'
 */
 exportSampleExcelForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -202,7 +202,7 @@ exportSampleExcelForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'
 
 /**
 * @see \App\Http\Controllers\InventoryController::exportSampleExcel
-* @see app/Http/Controllers/InventoryController.php:172
+* @see app/Http/Controllers/InventoryController.php:184
 * @route '/inventory/export-sample'
 */
 exportSampleExcelForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -657,24 +657,24 @@ update.form = updateForm
 /**
 * @see \App\Http\Controllers\InventoryController::destroy
 * @see app/Http/Controllers/InventoryController.php:144
-* @route '/inventory/{product}'
+* @route '/inventory/{product?}'
 */
-export const destroy = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args?: { product?: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
 
 destroy.definition = {
     methods: ["delete"],
-    url: '/inventory/{product}',
+    url: '/inventory/{product?}',
 } satisfies RouteDefinition<["delete"]>
 
 /**
 * @see \App\Http\Controllers\InventoryController::destroy
 * @see app/Http/Controllers/InventoryController.php:144
-* @route '/inventory/{product}'
+* @route '/inventory/{product?}'
 */
-destroy.url = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args?: { product?: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { product: args }
     }
@@ -691,23 +691,27 @@ destroy.url = (args: { product: number | { id: number } } | [product: number | {
 
     args = applyUrlDefaults(args)
 
+    validateParameters(args, [
+        "product",
+    ])
+
     const parsedArgs = {
-        product: typeof args.product === 'object'
+        product: typeof args?.product === 'object'
         ? args.product.id
-        : args.product,
+        : args?.product,
     }
 
     return destroy.definition.url
-            .replace('{product}', parsedArgs.product.toString())
+            .replace('{product?}', parsedArgs.product?.toString() ?? '')
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\InventoryController::destroy
 * @see app/Http/Controllers/InventoryController.php:144
-* @route '/inventory/{product}'
+* @route '/inventory/{product?}'
 */
-destroy.delete = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args?: { product?: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -715,9 +719,9 @@ destroy.delete = (args: { product: number | { id: number } } | [product: number 
 /**
 * @see \App\Http\Controllers\InventoryController::destroy
 * @see app/Http/Controllers/InventoryController.php:144
-* @route '/inventory/{product}'
+* @route '/inventory/{product?}'
 */
-const destroyForm = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+const destroyForm = (args?: { product?: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
     action: destroy.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
             _method: 'DELETE',
@@ -730,9 +734,9 @@ const destroyForm = (args: { product: number | { id: number } } | [product: numb
 /**
 * @see \App\Http\Controllers\InventoryController::destroy
 * @see app/Http/Controllers/InventoryController.php:144
-* @route '/inventory/{product}'
+* @route '/inventory/{product?}'
 */
-destroyForm.delete = (args: { product: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+destroyForm.delete = (args?: { product?: number | { id: number } } | [product: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
     action: destroy.url(args, {
         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
             _method: 'DELETE',

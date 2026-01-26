@@ -125,10 +125,22 @@ class MemberController extends Controller
     /**
      * Remove the specified member.
      */
-    public function destroy(Member $member)
+    public function destroy(Request $request, Member $member = null)
     {
-        $member->delete();
+        // If a single member is passed via route model binding
+        if ($member) {
+            $member->delete();
+            return Redirect::route('members.index')->with('success', 'Member deleted successfully.');
+        }
 
-        return Redirect::route('members.index')->with('success', 'Member deleted successfully.');
+        // Handle bulk deletion
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['required', 'integer', 'exists:members,id'],
+        ]);
+
+        Member::whereIn('id', $validated['ids'])->delete();
+
+        return Redirect::route('members.index')->with('success', 'Selected members deleted successfully.');
     }
 }

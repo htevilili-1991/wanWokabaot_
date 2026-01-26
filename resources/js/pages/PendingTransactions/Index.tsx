@@ -1,6 +1,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { Calendar, CheckCircle, Search, User, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Search, User, XCircle, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,7 +14,8 @@ import AppLayout from '@/layouts/app-layout';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { FlashMessage } from '@/components/flash-message';
 import { ConfirmDeleteModal } from '@/components/confirm-delete-modal';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { destroy, bulkDestroy } from '@/routes/pending-sales';
 
 interface PendingSale {
     id: number;
@@ -82,18 +84,39 @@ export default function PendingTransactionsIndex({
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<PendingSale | null>(null);
+    const [selectedTransactions, setSelectedTransactions] = useState<number[]>([]);
     const [flashMessage, setFlashMessage] = useState<{
         message: string;
         type: 'success' | 'error';
         show: boolean;
     }>({ message: '', type: 'success', show: false });
 
+    const isAllSelected = useMemo(() => {
+        return pendingSales.data.length > 0 && selectedTransactions.length === pendingSales.data.length;
+    }, [pendingSales.data, selectedTransactions]);
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedTransactions(pendingSales.data.map((sale) => sale.id));
+        } else {
+            setSelectedTransactions([]);
+        }
+    };
+
+    const handleSelectPendingSale = (saleId: number, checked: boolean) => {
+        setSelectedTransactions((prevSelected) =>
+            checked
+                ? [...prevSelected, saleId]
+                : prevSelected.filter((id) => id !== saleId)
+        );
+    };
+
     const paymentForm = useForm({
         amount: '',
         payment_method: 'cash',
         notes: '',
     });
-    const deleteForm = useForm({});
+    const bulkDeleteForm = useForm({});
 
     const handleAddPayment = (transaction: PendingSale) => {
         setSelectedTransaction(transaction);
@@ -108,7 +131,15 @@ export default function PendingTransactionsIndex({
 
     const handleDelete = (transaction: PendingSale) => {
         setSelectedTransaction(transaction);
+        setSelectedTransactions([]); // Clear bulk selections if a single delete is initiated
         setShowDeleteModal(true);
+    };
+
+    const handleBulkDelete = () => {
+        setSelectedTransaction(null); // Clear single selection if bulk delete is initiated
+        if (selectedTransactions.length > 0) {
+            setShowDeleteModal(true);
+        }
     };
 
     const submitPayment = () => {
@@ -135,27 +166,50 @@ export default function PendingTransactionsIndex({
     };
 
     const confirmDelete = () => {
-        if (!selectedTransaction) return;
-
-        deleteForm.delete(`/pending-sales/${selectedTransaction.id}`, {
-            onSuccess: () => {
-                setFlashMessage({
-                    message: `Transaction ${selectedTransaction.transaction_id} cancelled successfully!`,
-                    type: 'success',
-                    show: true,
-                });
-                setShowDeleteModal(false);
-                setSelectedTransaction(null);
-                setTimeout(() => setFlashMessage(prev => ({ ...prev, show: false })), 3000);
-            },
-            onError: () => {
-                setFlashMessage({
-                    message: 'Failed to cancel transaction.',
-                    type: 'error',
-                    show: true,
-                });
-            },
-        });
+        if (selectedTransactions.length > 0) {
+            // Bulk delete
+            bulkDeleteForm.delete(bulkDestroy().url, {
+                data: { ids: selectedTransactions },
+                onSuccess: () => {
+                    setFlashMessage({
+                        message: `Selected transactions cancelled successfully!`,
+                        type: 'success',
+                        show: true,
+                    });
+                    setShowDeleteModal(false);
+                    setSelectedTransactions([]);
+                    setTimeout(() => setFlashMessage(prev => ({ ...prev, show: false })), 3000);
+                },
+                onError: () => {
+                    setFlashMessage({
+                        message: 'Failed to cancel selected transactions.',
+                        type: 'error',
+                        show: true,
+                    });
+                },
+            });
+        } else if (selectedTransaction) {
+            // Single delete
+            bulkDeleteForm.delete(destroy(selectedTransaction.id).url, {
+                onSuccess: () => {
+                    setFlashMessage({
+                        message: `Transaction ${selectedTransaction.transaction_id} cancelled successfully!`,
+                        type: 'success',
+                        show: true,
+                    });
+                    setShowDeleteModal(false);
+                    setSelectedTransaction(null);
+                    setTimeout(() => setFlashMessage(prev => ({ ...prev, show: false })), 3000);
+                },
+                onError: () => {
+                    setFlashMessage({
+                        message: 'Failed to cancel transaction.',
+                        type: 'error',
+                        show: true,
+                    });
+                },
+            });
+        }
     };
 
     const formatCurrency = (amount: number | string) => {
@@ -184,9 +238,21 @@ export default function PendingTransactionsIndex({
                         <h1 className="text-2xl font-bold text-gray-900">Pending Transactions</h1>
                         <p className="text-gray-600">Complete saved transactions after items are handed over</p>
                     </div>
-                    <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-600">{pendingSales.total}</div>
-                        <div className="text-sm text-gray-500">Total Pending</div>
+                    <div className="flex items-center gap-2">
+                        {selectedTransactions.length > 0 && (
+                            <Button
+                                variant="destructive"
+                                onClick={handleBulkDelete}
+                                className="flex items-center gap-2"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Delete Selected ({selectedTransactions.length})
+                            </Button>
+                        )}
+                        <div className="text-right">
+                            <div className="text-2xl font-bold text-blue-600">{pendingSales.total}</div>
+                            <div className="text-sm text-gray-500">Total Pending</div>
+                        </div>
                     </div>
                 </div>
 
@@ -247,6 +313,13 @@ export default function PendingTransactionsIndex({
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-16">
+                                        <Checkbox
+                                            checked={isAllSelected}
+                                            onCheckedChange={handleSelectAll}
+                                            aria-label="Select all transactions"
+                                        />
+                                    </TableHead>
                                     <TableHead>Transaction ID</TableHead>
                                     <TableHead>Customer</TableHead>
                                     <TableHead>Items</TableHead>
@@ -268,6 +341,13 @@ export default function PendingTransactionsIndex({
                                 ) : (
                                     pendingSales.data.map((transaction) => (
                                         <TableRow key={transaction.id}>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={selectedTransactions.includes(transaction.id)}
+                                                    onCheckedChange={(checked) => handleSelectPendingSale(transaction.id, checked as boolean)}
+                                                    aria-label={`Select transaction ${transaction.transaction_id}`}
+                                                />
+                                            </TableCell>
                                             <TableCell className="font-mono font-medium">
                                                 {transaction.transaction_id}
                                             </TableCell>
@@ -476,7 +556,7 @@ export default function PendingTransactionsIndex({
                 title="Delete Transaction"
                 description={`Are you sure you want to delete transaction ${selectedTransaction?.transaction_id}? This will cancel the transaction and return all items to inventory. Any payments made will be refunded to the member's balance.`}
                 itemName={selectedTransaction?.transaction_id}
-                isLoading={deleteForm.processing}
+                isLoading={bulkDeleteForm.processing}
             />
         </AppLayout>
     );

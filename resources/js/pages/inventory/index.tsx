@@ -1,7 +1,8 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Trash2 } from 'lucide-react';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import Heading from '@/components/heading';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -65,6 +66,27 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
     const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+    const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+
+    const isAllSelected = useMemo(() => {
+        return products.data.length > 0 && selectedProducts.length === products.data.length;
+    }, [products.data, selectedProducts]);
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedProducts(products.data.map((product) => product.id));
+        } else {
+            setSelectedProducts([]);
+        }
+    };
+
+    const handleSelectProduct = (productId: number, checked: boolean) => {
+        setSelectedProducts((prevSelected) =>
+            checked
+                ? [...prevSelected, productId]
+                : prevSelected.filter((id) => id !== productId)
+        );
+    };
 
     const createForm = useForm({
         name: '',
@@ -174,18 +196,32 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
     };
 
     const confirmDelete = () => {
-        if (!productToDelete) return;
-
-        router.delete(destroy(productToDelete.id).url, {
-            onSuccess: () => {
-                setDeletePopoverOpen(false);
-                setProductToDelete(null);
-            },
-            onError: () => {
-                setDeletePopoverOpen(false);
-                setProductToDelete(null);
-            },
-        });
+        if (selectedProducts.length > 0) {
+            // Bulk delete
+            router.delete(destroy().url, {
+                data: { ids: selectedProducts },
+                onSuccess: () => {
+                    setSelectedProducts([]);
+                    setDeletePopoverOpen(false);
+                    router.reload();
+                },
+                onError: () => {
+                    setDeletePopoverOpen(false);
+                },
+            });
+        } else if (productToDelete) {
+            // Single delete
+            router.delete(destroy(productToDelete.id).url, {
+                onSuccess: () => {
+                    setDeletePopoverOpen(false);
+                    setProductToDelete(null);
+                },
+                onError: () => {
+                    setDeletePopoverOpen(false);
+                    setProductToDelete(null);
+                },
+            });
+        }
     };
 
     const startEdit = (product: Product) => {
@@ -397,8 +433,18 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
                                     </form>
                                 </DialogContent>
                             </Dialog>
-                        </div>
+                            {selectedProducts.length > 0 && (
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => setDeletePopoverOpen(true)}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete Selected ({selectedProducts.length})
+                                </Button>
+                            )}
                 </div>
+            </div>
 
                 {/* Search and Filters */}
                 <Card>
@@ -443,6 +489,13 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-16">
+                                        <Checkbox
+                                            checked={isAllSelected}
+                                            onCheckedChange={handleSelectAll}
+                                            aria-label="Select all products"
+                                        />
+                                    </TableHead>
                                     <TableHead
                                         className="cursor-pointer hover:bg-gray-50"
                                         onClick={() => handleSort('name')}
@@ -517,6 +570,13 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
                                     const stockStatus = getStockStatus(product);
                                     return (
                                         <TableRow key={product.id}>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={selectedProducts.includes(product.id)}
+                                                    onCheckedChange={(checked) => handleSelectProduct(product.id, checked as boolean)}
+                                                    aria-label={`Select product ${product.name}`}
+                                                />
+                                            </TableCell>
                                             <TableCell className="font-medium">{product.name}</TableCell>
                                             <TableCell>{product.category}</TableCell>
                                             <TableCell>{formatCurrency(product.cost_price)}</TableCell>

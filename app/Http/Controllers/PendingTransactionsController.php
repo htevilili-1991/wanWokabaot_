@@ -137,27 +137,53 @@ class PendingTransactionsController extends Controller
     /**
      * Delete/cancel a pending transaction.
      */
-    public function destroy(PendingSale $pendingSale): RedirectResponse
+    public function destroy(Request $request, PendingSale $pendingSale = null): RedirectResponse
     {
-        if (!$pendingSale->isPending()) {
-            return back()->with('error', 'This transaction has already been completed.');
+        $transactionsToDelete = collect();
+
+        if ($pendingSale) {
+            // Single deletion
+            $transactionsToDelete->push($pendingSale);
+        } else {
+            // Bulk deletion
+            $validated = $request->validate([
+                'ids' => ['required', 'array'],
+                'ids.*' => ['required', 'integer', 'exists:pending_sales,id'],
+            ]);
+            $transactionsToDelete = PendingSale::whereIn('id', $validated['ids'])->get();
         }
 
-        // Restore stock for all items
-        foreach ($pendingSale->items as $item) {
-            $product = \App\Models\Product::find($item['id']);
-            if ($product) {
-                $product->increment('current_stock', $item['quantity']);
+        foreach ($transactionsToDelete as $transaction) {
+            if (!$transaction->isPending()) {
+                // Skip already completed transactions for bulk delete, or return error for single
+                if ($pendingSale) { // If it's a single deletion, return error
+                    return back()->with('error', 'This transaction has already been completed and cannot be cancelled.');
+                }
+                continue; // For bulk, just skip this one
             }
+
+            // Restore stock for all items
+            foreach ($transaction->items as $item) {
+                // Corrected: Use 'product_id' if available, otherwise fallback to 'id' if 'id' refers to product id
+                $productId = $item['product_id'] ?? $item['id'];
+                $product = \App\Models\Product::find($productId);
+                if ($product) {
+                    $product->increment('current_stock', $item['quantity']);
+                }
+            }
+
+            // If member transaction and payments were made, refund to member balance
+            if ($transaction->member && $transaction->total_paid > 0) {
+                $transaction->member->increment('balance', $transaction->total_paid);
+            }
+
+            $transaction->delete();
         }
 
-        // If member transaction and payments were made, refund to member balance
-        if ($pendingSale->member && $pendingSale->total_paid > 0) {
-            $pendingSale->member->increment('balance', $pendingSale->total_paid);
-        }
+        $message = $pendingSale ?
+            "Transaction {$pendingSale->transaction_id} cancelled and items returned to inventory." :
+            "Selected pending transactions cancelled and items returned to inventory.";
 
-        $pendingSale->delete();
-
-        return back()->with('success', "Transaction {$pendingSale->transaction_id} cancelled and items returned to inventory.");
+        return back()->with('success', $message);
     }
 }
