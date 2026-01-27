@@ -135,6 +135,62 @@ class PendingTransactionsController extends Controller
     }
 
     /**
+     * Update pending transaction with new items and details.
+     */
+    public function updateTransaction(Request $request, PendingSale $pendingSale): RedirectResponse
+    {
+        if (!$pendingSale->isPending()) {
+            return back()->with('error', 'This transaction has already been completed.');
+        }
+
+        $request->validate([
+            'cart' => 'required|array|min:1',
+            'cart.*.id' => 'required|exists:products,id',
+            'cart.*.quantity' => 'required|integer|min:1',
+            'member_id' => 'nullable|exists:members,id',
+            'total' => 'required|numeric|min:0',
+            'payment_method' => 'required|in:cash,pay_later',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        // Calculate new subtotal from cart items
+        $newSubtotal = 0;
+        $updatedItems = [];
+
+        foreach ($request->cart as $item) {
+            $product = Product::find($item['id']);
+            if (!$product) {
+                return back()->with('error', 'Product not found.');
+            }
+
+            $itemTotal = $product->selling_price * $item['quantity'];
+            $newSubtotal += $itemTotal;
+
+            $updatedItems[] = [
+                'product_id' => $item['id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $product->selling_price,
+                'total' => $itemTotal,
+            ];
+        }
+
+        // Update the pending sale
+        $pendingSale->update([
+            'member_id' => $request->member_id,
+            'subtotal' => $newSubtotal,
+            'total' => $newSubtotal, // For pending transactions, total equals subtotal
+            'notes' => $request->notes,
+            'payment_method' => $request->payment_method,
+        ]);
+
+        // Update items (delete old and create new)
+        $pendingSale->items()->delete();
+        $pendingSale->items()->createMany($updatedItems);
+
+        return redirect()->route('pending-transactions.index')->with('success', 'Transaction updated successfully!');
+    }
+
+    /**
      * Delete/cancel a pending transaction.
      */
     public function destroy(Request $request, PendingSale $pendingSale = null): RedirectResponse

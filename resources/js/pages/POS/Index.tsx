@@ -197,8 +197,8 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
             setCarts([editCart]);
             setActiveCartId(editCart.id);
             
-            // Clear the session data after loading
-            fetch('/pos/clear-edit-session', { method: 'POST' }).catch(() => {});
+            // Clear the session data after loading (commented out to avoid CSRF issues)
+            // fetch('/pos/clear-edit-session', { method: 'POST' }).catch(() => {});
         }
     }, [pendingSaleEdit, products]);
 

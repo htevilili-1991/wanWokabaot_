@@ -92,8 +92,9 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
 
         // Pending transaction management
         Route::get('pending-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'index'])->name('pending-transactions.index');
-        Route::post('pending-sales/{pendingSale}/payment', [App\Http\Controllers\PendingTransactionsController::class, 'addPayment'])->name('pending-sales.payment');
         Route::get('pending-sales/{pendingSale}/edit', [App\Http\Controllers\PendingTransactionsController::class, 'update'])->name('pending-sales.edit');
+        Route::post('pending-sales/{pendingSale}/update', [App\Http\Controllers\PendingTransactionsController::class, 'updateTransaction'])->name('pending-sales.update-transaction');
+        Route::post('pending-sales/{pendingSale}/payment', [App\Http\Controllers\PendingTransactionsController::class, 'addPayment'])->name('pending-sales.payment');
         Route::delete('pending-sales/bulk-delete', [App\Http\Controllers\PendingTransactionsController::class, 'destroy'])->name('pending-sales.bulk-destroy');
         Route::delete('pending-sales/{pendingSale?}', [App\Http\Controllers\PendingTransactionsController::class, 'destroy'])->name('pending-sales.destroy');
     });
