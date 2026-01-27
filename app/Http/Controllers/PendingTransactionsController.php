@@ -183,11 +183,11 @@ class PendingTransactionsController extends Controller
             'total' => $newSubtotal, // For pending transactions, total equals subtotal
             'notes' => $request->notes,
             'payment_method' => $request->payment_method,
+            'items' => $updatedItems, // Update items as JSON array
         ]);
 
-        // Update items (delete old and create new)
-        $pendingSale->items()->delete();
-        $pendingSale->items()->createMany($updatedItems);
+        // Clear the edit session data to prevent the cart from staying loaded in POS
+        session()->forget('pending_sale_edit');
 
         return redirect()->route('pending-transactions.index')->with('success', 'Transaction updated successfully!');
     }

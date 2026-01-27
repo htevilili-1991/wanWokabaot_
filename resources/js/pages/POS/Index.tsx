@@ -168,7 +168,10 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
 
     // Handle pending sale edit data
     useEffect(() => {
-        if (pendingSaleEdit) {
+        if (pendingSaleEdit && !activeCart) {
+            // Only load edit cart if there's no active cart already
+            // This prevents reloading the edit cart after we've cleared it
+            
             // Convert pending sale items to cart items format
             const cartItems: CartItem[] = pendingSaleEdit.items
                 .map((item: any) => {
@@ -200,7 +203,7 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
             // Clear the session data after loading (commented out to avoid CSRF issues)
             // fetch('/pos/clear-edit-session', { method: 'POST' }).catch(() => {});
         }
-    }, [pendingSaleEdit, products]);
+    }, [pendingSaleEdit, products, activeCart]);
 
     // Cart management functions
     const createNewCart = (memberId: string = '') => {
@@ -407,8 +410,10 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
 
         router.post(`/pending-sales/${originalId}/update`, formData, {
             onSuccess: () => {
+                // Clear the active cart and remove it from the list
                 removeCart(activeCart.id);
-                refreshProducts(); // Refresh products after updating
+                refreshProducts();
+                // The session will be cleared on the backend, so no need to do it here
             },
             onError: (errors) => {
                 console.error('Update failed:', errors);
