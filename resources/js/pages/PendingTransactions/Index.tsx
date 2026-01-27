@@ -167,10 +167,14 @@ export default function PendingTransactionsIndex({
 
     const confirmDelete = () => {
         if (selectedTransactions.length > 0) {
-            // Bulk delete
-            bulkDeleteForm.delete(bulkDestroy().url, {
+            // Bulk delete - use router.delete with data in query params
+            console.log('Attempting bulk delete with IDs:', selectedTransactions);
+            console.log('Bulk destroy URL:', bulkDestroy().url);
+            
+            router.delete(bulkDestroy().url, {
                 data: { ids: selectedTransactions },
                 onSuccess: () => {
+                    console.log('Bulk delete successful');
                     setFlashMessage({
                         message: `Selected transactions cancelled successfully!`,
                         type: 'success',
@@ -180,7 +184,8 @@ export default function PendingTransactionsIndex({
                     setSelectedTransactions([]);
                     setTimeout(() => setFlashMessage(prev => ({ ...prev, show: false })), 3000);
                 },
-                onError: () => {
+                onError: (errors) => {
+                    console.error('Bulk delete failed:', errors);
                     setFlashMessage({
                         message: 'Failed to cancel selected transactions.',
                         type: 'error',
@@ -553,9 +558,13 @@ export default function PendingTransactionsIndex({
                     setSelectedTransaction(null);
                 }}
                 onConfirm={confirmDelete}
-                title="Delete Transaction"
-                description={`Are you sure you want to delete transaction ${selectedTransaction?.transaction_id}? This will cancel the transaction and return all items to inventory. Any payments made will be refunded to the member's balance.`}
-                itemName={selectedTransaction?.transaction_id}
+                title={selectedTransactions.length > 0 ? "Delete Transactions" : "Delete Transaction"}
+                description={
+                    selectedTransactions.length > 0 
+                        ? `Are you sure you want to delete ${selectedTransactions.length} selected transaction(s)? This will cancel the transactions and return all items to inventory. Any payments made will be refunded to the members' balances.`
+                        : `Are you sure you want to delete transaction ${selectedTransaction?.transaction_id}? This will cancel the transaction and return all items to inventory. Any payments made will be refunded to the member's balance.`
+                }
+                itemName={selectedTransactions.length > 0 ? `${selectedTransactions.length} transaction(s)` : selectedTransaction?.transaction_id}
                 isLoading={bulkDeleteForm.processing}
             />
         </AppLayout>

@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { sale } from '@/routes/pos';
+import { sale, savePending } from '@/routes/pos';
 import { type SharedData } from '@/types';
 
 interface Product {
@@ -46,6 +46,13 @@ interface Cart {
 interface POSPageProps {
     products: Product[];
     members: Member[];
+    pendingSaleEdit?: {
+        id: number;
+        items: any[];
+        member_id: number | null;
+        subtotal: number;
+        notes: string;
+    };
 }
 
 const breadcrumbs = [
@@ -55,12 +62,27 @@ const breadcrumbs = [
     },
 ];
 
-export default function POSIndex({ products: initialProducts, members }: POSPageProps) {
+export default function POSIndex({ products: initialProducts, members, pendingSaleEdit }: POSPageProps) {
     const { flash } = usePage<SharedData>().props;
     const [searchTerm, setSearchTerm] = useState('');
     const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [carts, setCarts] = useState<Cart[]>([]);
-    const [activeCartId, setActiveCartId] = useState<string | null>(null);
+    
+    // Load carts from localStorage on mount
+    const [carts, setCarts] = useState<Cart[]>(() => {
+        if (typeof window !== 'undefined') {
+            const savedCarts = localStorage.getItem('pos_carts');
+            return savedCarts ? JSON.parse(savedCarts) : [];
+        }
+        return [];
+    });
+    
+    const [activeCartId, setActiveCartId] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('pos_active_cart_id');
+        }
+        return null;
+    });
+    
     const [isFullscreen, setIsFullscreen] = useState(false);
     const posContainerRef = useRef<HTMLDivElement>(null);
 
@@ -79,9 +101,10 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
     });
 
     const saveForm = useForm({
-        cart: [] as CartItem[],
+        cart: [] as { id: number; quantity: number }[],
         member_id: '',
         total: 0,
+        payment_method: 'cash' as 'cash' | 'pay_later',
         notes: '',
     });
 
@@ -122,8 +145,62 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
     const canPayLater = useMemo(() => {
         if (!selectedMemberId) return false;
         const member = members.find(m => m.id.toString() === selectedMemberId);
-        return member ? member.balance < 2000 : false;
+        return member ? Number(member.balance) < 2000 : false;
     }, [selectedMemberId, members]);
+
+    // Save carts to localStorage whenever they change
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('pos_carts', JSON.stringify(carts));
+        }
+    }, [carts]);
+
+    // Save active cart ID to localStorage whenever it changes
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (activeCartId) {
+                localStorage.setItem('pos_active_cart_id', activeCartId);
+            } else {
+                localStorage.removeItem('pos_active_cart_id');
+            }
+        }
+    }, [activeCartId]);
+
+    // Handle pending sale edit data
+    useEffect(() => {
+        if (pendingSaleEdit) {
+            // Convert pending sale items to cart items format
+            const cartItems: CartItem[] = pendingSaleEdit.items
+                .map((item: any) => {
+                    const product = products.find(p => p.id === item.product_id);
+                    if (!product) return null;
+                    
+                    return {
+                        id: item.product_id,
+                        product: product,
+                        quantity: item.quantity,
+                        subtotal: Number(item.total) || (Number(product.selling_price) * item.quantity),
+                    };
+                })
+                .filter((item): item is CartItem => item !== null);
+
+            // Create a new cart with the pending sale data
+            const editCart: Cart = {
+                id: `edit-cart-${pendingSaleEdit.id}`,
+                member_id: pendingSaleEdit.member_id?.toString() || '',
+                items: cartItems,
+                payment_method: 'cash', // Default, can be changed by user
+                notes: pendingSaleEdit.notes || '',
+                status: 'active',
+            };
+
+            setCarts([editCart]);
+            setActiveCartId(editCart.id);
+            
+            // Clear the session data after loading
+            fetch('/pos/clear-edit-session', { method: 'POST' }).catch(() => {});
+        }
+    }, [pendingSaleEdit, products]);
 
     // Cart management functions
     const createNewCart = (memberId: string = '') => {
@@ -151,6 +228,15 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
         }
     };
 
+    const clearAllCarts = () => {
+        setCarts([]);
+        setActiveCartId(null);
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('pos_carts');
+            localStorage.removeItem('pos_active_cart_id');
+        }
+    };
+
     const updateActiveCart = (updates: Partial<Cart>) => {
         if (!activeCartId) return;
         setCarts(prev => prev.map(cart =>
@@ -158,12 +244,12 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
         ));
     };
 
-    // Initialize with first cart if none exists
-    useEffect(() => {
-        if (carts.length === 0) {
-            createNewCart();
-        }
-    }, []);
+    // Initialize with first cart if none exists - REMOVED to prevent auto-creation
+    // useEffect(() => {
+    //     if (carts.length === 0) {
+    //         createNewCart();
+    //     }
+    // }, []);
 
     // Update form when active cart changes
     useEffect(() => {
@@ -263,18 +349,70 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
             return;
         }
 
-        saveForm.setData({
-            cart: activeCart.items,
+        // Transform cart items to the format backend expects
+        const cartData = activeCart.items.map(item => ({
+            id: item.product.id,
+            quantity: item.quantity,
+        }));
+
+        const formData = {
+            cart: cartData,
             member_id: activeCart.member_id || '',
-            total: total,
+            total: Number(total), // Ensure total is a number
             payment_method: activeCart.payment_method,
             notes: activeCart.notes,
-        });
+        };
 
-        saveForm.post('/pos/save-pending', {
+        console.log('Saving for later with data:', formData);
+
+        router.post(savePending().url, formData, {
             onSuccess: () => {
                 removeCart(activeCart.id);
                 refreshProducts(); // Refresh products after saving
+            },
+            onError: (errors) => {
+                console.error('Save for later failed:', errors);
+                alert('Failed to save transaction. Please try again.');
+            },
+        });
+    };
+
+    // Check if current cart is in edit mode
+    const isEditMode = activeCart?.id.startsWith('edit-cart-') || false;
+
+    const updatePendingTransaction = () => {
+        if (!activeCart || activeCart.items.length === 0) {
+            alert('Please add items to cart');
+            return;
+        }
+
+        // Extract the original pending transaction ID from the cart ID
+        const originalId = activeCart.id.replace('edit-cart-', '');
+        
+        // Transform cart items to the format backend expects
+        const cartData = activeCart.items.map(item => ({
+            id: item.product.id,
+            quantity: item.quantity,
+        }));
+
+        const formData = {
+            cart: cartData,
+            member_id: activeCart.member_id || '',
+            total: Number(total),
+            payment_method: activeCart.payment_method,
+            notes: activeCart.notes,
+        };
+
+        console.log('Updating pending transaction:', originalId, formData);
+
+        router.post(`/pending-sales/${originalId}/update`, formData, {
+            onSuccess: () => {
+                removeCart(activeCart.id);
+                refreshProducts(); // Refresh products after updating
+            },
+            onError: (errors) => {
+                console.error('Update failed:', errors);
+                alert('Failed to update transaction. Please try again.');
             },
         });
     };
@@ -400,10 +538,18 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
                                 <CardTitle>Active Carts</CardTitle>
                                 <CardDescription>Manage multiple customer transactions</CardDescription>
                             </div>
-                            <Button onClick={() => createNewCart()} variant="outline">
-                                <Plus className="h-4 w-4 mr-2" />
-                                New Cart
-                            </Button>
+                            <div className="flex gap-2">
+                                {carts.length > 0 && (
+                                    <Button onClick={clearAllCarts} variant="outline" size="sm">
+                                        <X className="h-4 w-4 mr-2" />
+                                        Clear All
+                                    </Button>
+                                )}
+                                <Button onClick={() => createNewCart()} variant="outline">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    New Cart
+                                </Button>
+                            </div>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -519,11 +665,20 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <ShoppingCart className="h-5 w-5" />
-                                    Cart ({cart.length})
+                                    {activeCart ? `Cart (${cart.length})` : 'No Active Cart'}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {cart.length === 0 ? (
+                                {!activeCart ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                        <p>No active cart. Create a new cart to start adding items.</p>
+                                        <Button onClick={() => createNewCart()} className="mt-4">
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            New Cart
+                                        </Button>
+                                    </div>
+                                ) : cart.length === 0 ? (
                                     <p className="text-center text-gray-500 py-4">Cart is empty</p>
                                 ) : (
                                     <>
@@ -630,138 +785,174 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
                             </CardContent>
                         </Card>
 
-                        {/* Payment Method */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <CreditCard className="h-5 w-5" />
-                                    Payment Method
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button
-                                        variant={paymentMethod === 'cash' ? 'default' : 'outline'}
-                                        onClick={() => setPaymentMethod('cash')}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <CreditCard className="h-4 w-4" />
-                                        Cash
-                                    </Button>
-                                    <Button
-                                        variant={paymentMethod === 'pay_later' ? 'default' : 'outline'}
-                                        onClick={() => setPaymentMethod('pay_later')}
-                                        disabled={!selectedMemberId || !canPayLater}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Clock className="h-4 w-4" />
-                                        Pay Later
-                                    </Button>
-                                </div>
+                        {/* Payment Method, Notes & Actions - Only show when there's an active cart */}
+                        {activeCart && (
+                            <>
+                                {!isEditMode && (
+                                    <>
+                                        {/* Payment Method - Only show in normal mode */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <CreditCard className="h-5 w-5" />
+                                                    Payment Method
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <Button
+                                                        variant={paymentMethod === 'cash' ? 'default' : 'outline'}
+                                                        onClick={() => setPaymentMethod('cash')}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <CreditCard className="h-4 w-4" />
+                                                        Cash
+                                                    </Button>
+                                                    <Button
+                                                        variant={paymentMethod === 'pay_later' ? 'default' : 'outline'}
+                                                        onClick={() => setPaymentMethod('pay_later')}
+                                                        disabled={!selectedMemberId || !canPayLater}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <Clock className="h-4 w-4" />
+                                                        Pay Later
+                                                    </Button>
+                                                </div>
 
-                                {paymentMethod === 'pay_later' && selectedMemberId && !canPayLater && (
-                                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                        <p className="text-sm text-red-600 font-medium">
-                                            Member cannot use "Pay Later" option
-                                        </p>
-                                        <p className="text-xs text-red-600">
-                                            Unpaid amount is 2000 VT or more
-                                        </p>
-                                    </div>
+                                                {paymentMethod === 'pay_later' && selectedMemberId && !canPayLater && (
+                                                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                        <p className="text-sm text-red-600 font-medium">
+                                                            Member cannot use "Pay Later" option
+                                                        </p>
+                                                        <p className="text-xs text-red-600">
+                                                            Unpaid amount is 2000 VT or more
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {paymentMethod === 'pay_later' && !selectedMemberId && (
+                                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                                        <p className="text-sm text-yellow-600 font-medium">
+                                                            Select a member to use "Pay Later"
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </>
                                 )}
 
-                                {paymentMethod === 'pay_later' && !selectedMemberId && (
-                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                        <p className="text-sm text-yellow-600 font-medium">
-                                            Select a member to use "Pay Later"
-                                        </p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                                {/* Transaction Notes */}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-sm">Transaction Notes (Optional)</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <textarea
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Add notes for this transaction..."
+                                            value={transactionNotes}
+                                            onChange={(e) => setTransactionNotes(e.target.value)}
+                                            rows={2}
+                                        />
+                                    </CardContent>
+                                </Card>
 
-                        {/* Transaction Notes */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm">Transaction Notes (Optional)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <textarea
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Add notes for this transaction..."
-                                    value={transactionNotes}
-                                    onChange={(e) => setTransactionNotes(e.target.value)}
-                                    rows={2}
-                                />
-                            </CardContent>
-                        </Card>
-
-                        {/* Action Buttons */}
-                        <Card>
-                            <CardContent className="pt-6 space-y-3">
-                                {paymentMethod === 'pay_later' ? (
-                                    <div className="text-center space-y-3">
-                                        <Button
-                                            onClick={saveForLater}
-                                            disabled={cart.length === 0 || saveForm.processing}
-                                            size="lg"
-                                            className="flex items-center gap-2"
-                                        >
-                                            <Save className="h-4 w-4" />
-                                            {saveForm.processing ? 'Saving...' : 'Save for Later'}
-                                        </Button>
-                                        <p className="text-xs text-gray-500">
-                                            Items will be handed over, payment collected later
-                                        </p>
-                                    </div>
-                                ) : paymentMethod === 'cash' ? (
-                                    <div className="text-center space-y-3">
-                                        <Button
-                                            onClick={processSale}
-                                            disabled={cart.length === 0 || saleForm.processing}
-                                            size="lg"
-                                            className="flex items-center gap-2"
-                                        >
-                                            <CheckCircle className="h-4 w-4" />
-                                            {saleForm.processing ? 'Processing...' : 'Complete Sale'}
-                                        </Button>
-                                        <p className="text-xs text-gray-500">
-                                            Process payment and complete transaction
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <Button
-                                                onClick={saveForLater}
-                                                disabled={cart.length === 0 || saveForm.processing}
-                                                variant="outline"
-                                                size="lg"
-                                                className="flex items-center gap-2"
-                                            >
-                                                <Save className="h-4 w-4" />
-                                                {saveForm.processing ? 'Saving...' : 'Save'}
-                                            </Button>
-                                            <Button
-                                                onClick={processSale}
-                                                disabled={cart.length === 0 || saleForm.processing}
-                                                size="lg"
-                                                className="flex items-center gap-2"
-                                            >
-                                                <CheckCircle className="h-4 w-4" />
-                                                {saleForm.processing ? 'Processing...' : 'Complete'}
-                                            </Button>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
-                                            <p className="text-center">
-                                                Save for later processing
-                                            </p>
-                                            <p className="text-center">
-                                                Complete sale now
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Action Buttons */}
+                                <Card>
+                                    <CardContent className="pt-6 space-y-3">
+                                        {isEditMode ? (
+                                            // Edit Mode - Show Update button only
+                                            <div className="text-center space-y-3">
+                                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                                                    <p className="text-sm text-blue-600 font-medium">
+                                                        Editing Pending Transaction #{activeCart.id.replace('edit-cart-', '')}
+                                                    </p>
+                                                    <p className="text-xs text-blue-600">
+                                                        Payment method: {activeCart.payment_method === 'pay_later' ? 'Pay Later' : 'Cash'}
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    onClick={updatePendingTransaction}
+                                                    disabled={cart.length === 0}
+                                                    size="lg"
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Save className="h-4 w-4" />
+                                                    Update Transaction
+                                                </Button>
+                                                <p className="text-xs text-gray-500">
+                                                    Update the pending transaction with your changes
+                                                </p>
+                                            </div>
+                                        ) : paymentMethod === 'pay_later' ? (
+                                            // Normal Mode - Pay Later
+                                            <div className="text-center space-y-3">
+                                                <Button
+                                                    onClick={saveForLater}
+                                                    disabled={cart.length === 0 || saveForm.processing}
+                                                    size="lg"
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Save className="h-4 w-4" />
+                                                    {saveForm.processing ? 'Saving...' : 'Save for Later'}
+                                                </Button>
+                                                <p className="text-xs text-gray-500">
+                                                    Items will be handed over, payment collected later
+                                                </p>
+                                            </div>
+                                        ) : paymentMethod === 'cash' ? (
+                                            // Normal Mode - Cash
+                                            <div className="text-center space-y-3">
+                                                <Button
+                                                    onClick={processSale}
+                                                    disabled={cart.length === 0 || saleForm.processing}
+                                                    size="lg"
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <CheckCircle className="h-4 w-4" />
+                                                    {saleForm.processing ? 'Processing...' : 'Complete Sale'}
+                                                </Button>
+                                                <p className="text-xs text-gray-500">
+                                                    Process payment and complete transaction
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            // Normal Mode - Both options
+                                            <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <Button
+                                                        onClick={saveForLater}
+                                                        disabled={cart.length === 0 || saveForm.processing}
+                                                        variant="outline"
+                                                        size="lg"
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <Save className="h-4 w-4" />
+                                                        {saveForm.processing ? 'Saving...' : 'Save'}
+                                                    </Button>
+                                                    <Button
+                                                        onClick={processSale}
+                                                        disabled={cart.length === 0 || saleForm.processing}
+                                                        size="lg"
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <CheckCircle className="h-4 w-4" />
+                                                        {saleForm.processing ? 'Processing...' : 'Complete'}
+                                                    </Button>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
+                                                    <p className="text-center">
+                                                        Save for later processing
+                                                    </p>
+                                                    <p className="text-center">
+                                                        Complete sale now
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
 
                                 {flash?.success && (
                                     <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -774,8 +965,8 @@ export default function POSIndex({ products: initialProducts, members }: POSPage
                                         <p className="text-sm text-red-600">{flash.error}</p>
                                     </div>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </>
+                        )}
                     </div>
                 </div>
                 )}

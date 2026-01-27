@@ -195,6 +195,15 @@ class POSController extends Controller
     }
 
     /**
+     * Clear pending sale edit session data.
+     */
+    public function clearEditSession(Request $request): \Illuminate\Http\JsonResponse
+    {
+        session()->forget('pending_sale_edit');
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Complete a pending sale transaction.
      */
     public function completePendingSale(Request $request, PendingSale $pendingSale): RedirectResponse

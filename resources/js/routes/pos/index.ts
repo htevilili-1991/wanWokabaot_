@@ -273,11 +273,68 @@ savePendingForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'
 
 savePending.form = savePendingForm
 
+/**
+* @see \App\Http\Controllers\POSController::clearEditSession
+* @see app/Http/Controllers/POSController.php:200
+* @route '/pos/clear-edit-session'
+*/
+export const clearEditSession = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: clearEditSession.url(options),
+    method: 'post',
+})
+
+clearEditSession.definition = {
+    methods: ["post"],
+    url: '/pos/clear-edit-session',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\POSController::clearEditSession
+* @see app/Http/Controllers/POSController.php:200
+* @route '/pos/clear-edit-session'
+*/
+clearEditSession.url = (options?: RouteQueryOptions) => {
+    return clearEditSession.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\POSController::clearEditSession
+* @see app/Http/Controllers/POSController.php:200
+* @route '/pos/clear-edit-session'
+*/
+clearEditSession.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: clearEditSession.url(options),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\POSController::clearEditSession
+* @see app/Http/Controllers/POSController.php:200
+* @route '/pos/clear-edit-session'
+*/
+const clearEditSessionForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: clearEditSession.url(options),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\POSController::clearEditSession
+* @see app/Http/Controllers/POSController.php:200
+* @route '/pos/clear-edit-session'
+*/
+clearEditSessionForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: clearEditSession.url(options),
+    method: 'post',
+})
+
+clearEditSession.form = clearEditSessionForm
+
 const pos = {
     index: Object.assign(index, index),
     products: Object.assign(products, products),
     sale: Object.assign(sale, sale),
     savePending: Object.assign(savePending, savePending),
+    clearEditSession: Object.assign(clearEditSession, clearEditSession),
 }
 
 export default pos

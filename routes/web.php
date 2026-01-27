@@ -1,12 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
-
     return redirect()->route('login');
 })->name('home');
 
@@ -46,6 +46,7 @@ Route::get('/test-db', function () {
 // Routes accessible by all authenticated users (Super Admin, Admin, Treasurer, Member)
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+
 
     // View-only member routes for Members
     Route::get('members', [App\Http\Controllers\MemberController::class, 'index'])->name('members.index');
@@ -87,6 +88,7 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
         Route::get('pos/products', [App\Http\Controllers\POSController::class, 'getProducts'])->name('pos.products');
         Route::post('pos/sale', [App\Http\Controllers\POSController::class, 'processSale'])->name('pos.sale');
         Route::post('pos/save-pending', [App\Http\Controllers\POSController::class, 'savePendingSale'])->name('pos.savePending');
+        Route::post('pos/clear-edit-session', [App\Http\Controllers\POSController::class, 'clearEditSession'])->name('pos.clearEditSession');
 
         // Pending transaction management
         Route::get('pending-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'index'])->name('pending-transactions.index');
@@ -116,3 +118,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports.index');
     Route::post('reports/generate', [App\Http\Controllers\ReportsController::class, 'generate'])->name('reports.generate');
 });
+
