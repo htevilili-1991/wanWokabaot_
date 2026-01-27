@@ -75,7 +75,7 @@ class PendingTransactionsController extends Controller
     /**
      * Add payment to a pending transaction.
      */
-    public function addPayment(Request $request, PendingSale $pendingSale): RedirectResponse
+    public function addPayment(Request $request, PendingSale $pendingSale): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
@@ -116,7 +116,7 @@ class PendingTransactionsController extends Controller
     /**
      * Reopen transaction in POS for editing.
      */
-    public function update(PendingSale $pendingSale): RedirectResponse
+    public function update(PendingSale $pendingSale): \Illuminate\Http\RedirectResponse
     {
         if (!$pendingSale->isPending()) {
             return back()->with('error', 'This transaction has already been completed.');
@@ -139,7 +139,7 @@ class PendingTransactionsController extends Controller
     /**
      * Update pending transaction with new items and details.
      */
-    public function updateTransaction(Request $request, PendingSale $pendingSale): RedirectResponse
+    public function updateTransaction(Request $request, PendingSale $pendingSale): \Illuminate\Http\RedirectResponse
     {
         if (!$pendingSale->isPending()) {
             return back()->with('error', 'This transaction has already been completed.');
@@ -195,7 +195,7 @@ class PendingTransactionsController extends Controller
     /**
      * Delete/cancel a pending transaction.
      */
-    public function destroy(Request $request, PendingSale $pendingSale = null): RedirectResponse
+    public function destroy(Request $request, PendingSale $pendingSale = null): \Illuminate\Http\RedirectResponse
     {
         $transactionsToDelete = collect();
 
