@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Member;
+use App\Models\Product;
 use App\Models\PendingSale;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PendingTransactionsController extends Controller

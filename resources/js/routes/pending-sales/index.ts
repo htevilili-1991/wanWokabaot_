@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults, validateParameters } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::edit
-* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @see app/Http/Controllers/PendingTransactionsController.php:119
 * @route '/pending-sales/{pendingSale}/edit'
 */
 export const edit = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::edit
-* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @see app/Http/Controllers/PendingTransactionsController.php:119
 * @route '/pending-sales/{pendingSale}/edit'
 */
 edit.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ edit.url = (args: { pendingSale: number | { id: number } } | [pendingSale: numbe
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::edit
-* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @see app/Http/Controllers/PendingTransactionsController.php:119
 * @route '/pending-sales/{pendingSale}/edit'
 */
 edit.get = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -59,7 +59,7 @@ edit.get = (args: { pendingSale: number | { id: number } } | [pendingSale: numbe
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::edit
-* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @see app/Http/Controllers/PendingTransactionsController.php:119
 * @route '/pending-sales/{pendingSale}/edit'
 */
 edit.head = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -69,7 +69,7 @@ edit.head = (args: { pendingSale: number | { id: number } } | [pendingSale: numb
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::edit
-* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @see app/Http/Controllers/PendingTransactionsController.php:119
 * @route '/pending-sales/{pendingSale}/edit'
 */
 const editForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ const editForm = (args: { pendingSale: number | { id: number } } | [pendingSale:
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::edit
-* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @see app/Http/Controllers/PendingTransactionsController.php:119
 * @route '/pending-sales/{pendingSale}/edit'
 */
 editForm.get = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -89,7 +89,7 @@ editForm.get = (args: { pendingSale: number | { id: number } } | [pendingSale: n
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::edit
-* @see app/Http/Controllers/PendingTransactionsController.php:117
+* @see app/Http/Controllers/PendingTransactionsController.php:119
 * @route '/pending-sales/{pendingSale}/edit'
 */
 editForm.head = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -106,7 +106,7 @@ edit.form = editForm
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::updateTransaction
-* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @see app/Http/Controllers/PendingTransactionsController.php:142
 * @route '/pending-sales/{pendingSale}/update'
 */
 export const updateTransaction = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -121,7 +121,7 @@ updateTransaction.definition = {
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::updateTransaction
-* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @see app/Http/Controllers/PendingTransactionsController.php:142
 * @route '/pending-sales/{pendingSale}/update'
 */
 updateTransaction.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -154,7 +154,7 @@ updateTransaction.url = (args: { pendingSale: number | { id: number } } | [pendi
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::updateTransaction
-* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @see app/Http/Controllers/PendingTransactionsController.php:142
 * @route '/pending-sales/{pendingSale}/update'
 */
 updateTransaction.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -164,7 +164,7 @@ updateTransaction.post = (args: { pendingSale: number | { id: number } } | [pend
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::updateTransaction
-* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @see app/Http/Controllers/PendingTransactionsController.php:142
 * @route '/pending-sales/{pendingSale}/update'
 */
 const updateTransactionForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -174,7 +174,7 @@ const updateTransactionForm = (args: { pendingSale: number | { id: number } } | 
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::updateTransaction
-* @see app/Http/Controllers/PendingTransactionsController.php:140
+* @see app/Http/Controllers/PendingTransactionsController.php:142
 * @route '/pending-sales/{pendingSale}/update'
 */
 updateTransactionForm.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -186,7 +186,7 @@ updateTransaction.form = updateTransactionForm
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::payment
-* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @see app/Http/Controllers/PendingTransactionsController.php:78
 * @route '/pending-sales/{pendingSale}/payment'
 */
 export const payment = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -201,7 +201,7 @@ payment.definition = {
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::payment
-* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @see app/Http/Controllers/PendingTransactionsController.php:78
 * @route '/pending-sales/{pendingSale}/payment'
 */
 payment.url = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -234,7 +234,7 @@ payment.url = (args: { pendingSale: number | { id: number } } | [pendingSale: nu
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::payment
-* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @see app/Http/Controllers/PendingTransactionsController.php:78
 * @route '/pending-sales/{pendingSale}/payment'
 */
 payment.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -244,7 +244,7 @@ payment.post = (args: { pendingSale: number | { id: number } } | [pendingSale: n
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::payment
-* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @see app/Http/Controllers/PendingTransactionsController.php:78
 * @route '/pending-sales/{pendingSale}/payment'
 */
 const paymentForm = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -254,7 +254,7 @@ const paymentForm = (args: { pendingSale: number | { id: number } } | [pendingSa
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::payment
-* @see app/Http/Controllers/PendingTransactionsController.php:76
+* @see app/Http/Controllers/PendingTransactionsController.php:78
 * @route '/pending-sales/{pendingSale}/payment'
 */
 paymentForm.post = (args: { pendingSale: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -266,7 +266,7 @@ payment.form = paymentForm
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/bulk-delete'
 */
 export const bulkDestroy = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -281,7 +281,7 @@ bulkDestroy.definition = {
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/bulk-delete'
 */
 bulkDestroy.url = (options?: RouteQueryOptions) => {
@@ -290,7 +290,7 @@ bulkDestroy.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/bulk-delete'
 */
 bulkDestroy.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -300,7 +300,7 @@ bulkDestroy.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> =>
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/bulk-delete'
 */
 const bulkDestroyForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -315,7 +315,7 @@ const bulkDestroyForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::bulkDestroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/bulk-delete'
 */
 bulkDestroyForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -332,7 +332,7 @@ bulkDestroy.form = bulkDestroyForm
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/{pendingSale?}'
 */
 export const destroy = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -347,7 +347,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/{pendingSale?}'
 */
 destroy.url = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -384,7 +384,7 @@ destroy.url = (args?: { pendingSale?: number | { id: number } } | [pendingSale: 
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/{pendingSale?}'
 */
 destroy.delete = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -394,7 +394,7 @@ destroy.delete = (args?: { pendingSale?: number | { id: number } } | [pendingSal
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/{pendingSale?}'
 */
 const destroyForm = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -409,7 +409,7 @@ const destroyForm = (args?: { pendingSale?: number | { id: number } } | [pending
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::destroy
-* @see app/Http/Controllers/PendingTransactionsController.php:196
+* @see app/Http/Controllers/PendingTransactionsController.php:198
 * @route '/pending-sales/{pendingSale?}'
 */
 destroyForm.delete = (args?: { pendingSale?: number | { id: number } } | [pendingSale: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
