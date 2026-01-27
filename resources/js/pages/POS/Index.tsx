@@ -1,6 +1,6 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, ShoppingCart, User, CreditCard, Clock, Save, CheckCircle, Plus, X, Maximize, Minimize } from 'lucide-react';
+import { Search, ShoppingCart, User, CreditCard, Clock, Save, CheckCircle, Plus, X, Maximize, Minimize, DollarSign } from 'lucide-react';
 
 import Heading from '@/components/heading';
 import AppLayout from '@/layouts/app-layout';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { sale, savePending } from '@/routes/pos';
 import { type SharedData } from '@/types';
 
@@ -63,7 +64,7 @@ const breadcrumbs = [
 ];
 
 export default function POSIndex({ products: initialProducts, members, pendingSaleEdit }: POSPageProps) {
-    const { flash } = usePage<SharedData>().props;
+    const { flash } = usePage<SharedData & { flash?: { success?: string; error?: string; info?: string } }>().props;
     const [searchTerm, setSearchTerm] = useState('');
     const [products, setProducts] = useState<Product[]>(initialProducts);
     
@@ -85,6 +86,10 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
     
     const [isFullscreen, setIsFullscreen] = useState(false);
     const posContainerRef = useRef<HTMLDivElement>(null);
+    
+    // Payment popover state
+    const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+    const [receivedCash, setReceivedCash] = useState('');
 
     // Computed values for active cart
     const activeCart = carts.find(cart => cart.id === activeCartId) || null;
@@ -93,8 +98,13 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
     const cart = activeCart?.items || [];
     const transactionNotes = activeCart?.notes || '';
 
-    const saleForm = useForm({
-        cart: [] as CartItem[],
+    const saleForm = useForm<{
+        cart: Array<{ id: number; quantity: number }>;
+        member_id: string;
+        total: number;
+        payment_method: 'cash' | 'pay_later';
+    }>({
+        cart: [],
         member_id: '',
         total: 0,
         payment_method: 'cash' as 'cash' | 'pay_later',
@@ -292,7 +302,7 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
                 id: Date.now(), // temporary ID for cart
                 product,
                 quantity: 1,
-                subtotal: product.selling_price,
+                subtotal: Number(product.selling_price),
             };
             updateActiveCart({
                 items: [...activeCart.items, newItem]
@@ -319,7 +329,7 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
                 return {
                     ...item,
                     quantity: newQuantity,
-                    subtotal: item.product.selling_price * newQuantity,
+                    subtotal: Number(item.product.selling_price) * newQuantity,
                 };
             }
             return item;
@@ -422,6 +432,53 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
         });
     };
 
+    const openPaymentDialog = () => {
+        setReceivedCash('');
+        setShowPaymentDialog(true);
+    };
+
+    const closePaymentDialog = () => {
+        setShowPaymentDialog(false);
+        setReceivedCash('');
+    };
+
+    const completeCashSale = () => {
+        if (!activeCart || activeCart.items.length === 0) {
+            alert('Please add items to cart');
+            return;
+        }
+
+        const receivedAmount = parseFloat(receivedCash);
+        if (isNaN(receivedAmount) || receivedAmount < total) {
+            alert('Received cash must be at least the total amount');
+            return;
+        }
+
+        updateActiveCart({ status: 'processing' });
+
+        saleForm.setData({
+            cart: activeCart.items.map(item => ({
+                id: item.product.id,
+                quantity: item.quantity,
+            })),
+            member_id: activeCart.member_id,
+            total: total,
+            payment_method: 'cash',
+        });
+
+        saleForm.post(sale().url, {
+            onSuccess: () => {
+                removeCart(activeCart.id);
+                refreshProducts();
+                closePaymentDialog();
+            },
+            onError: () => {
+                updateActiveCart({ status: 'active' });
+                closePaymentDialog();
+            },
+        });
+    };
+
     const processSale = () => {
         if (!activeCart || activeCart.items.length === 0) {
             alert('Please add items to cart');
@@ -445,7 +502,7 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
             payment_method: activeCart.payment_method,
         });
 
-        saleForm.post(sale(), {
+        saleForm.post(sale().url, {
             onSuccess: () => {
                 removeCart(activeCart.id);
                 refreshProducts(); // Refresh products after sale
@@ -907,51 +964,27 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
                                                 </p>
                                             </div>
                                         ) : paymentMethod === 'cash' ? (
-                                            // Normal Mode - Cash
+                                            // Normal Mode - Cash Payment
                                             <div className="text-center space-y-3">
                                                 <Button
-                                                    onClick={processSale}
-                                                    disabled={cart.length === 0 || saleForm.processing}
+                                                    onClick={openPaymentDialog}
+                                                    disabled={cart.length === 0}
                                                     size="lg"
                                                     className="flex items-center gap-2"
                                                 >
-                                                    <CheckCircle className="h-4 w-4" />
-                                                    {saleForm.processing ? 'Processing...' : 'Complete Sale'}
+                                                    <DollarSign className="h-4 w-4" />
+                                                    Pay Now
                                                 </Button>
                                                 <p className="text-xs text-gray-500">
-                                                    Process payment and complete transaction
+                                                    Process cash payment and calculate change
                                                 </p>
                                             </div>
                                         ) : (
-                                            // Normal Mode - Both options
-                                            <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <Button
-                                                        onClick={saveForLater}
-                                                        disabled={cart.length === 0 || saveForm.processing}
-                                                        variant="outline"
-                                                        size="lg"
-                                                        className="flex items-center gap-2"
-                                                    >
-                                                        <Save className="h-4 w-4" />
-                                                        {saveForm.processing ? 'Saving...' : 'Save'}
-                                                    </Button>
-                                                    <Button
-                                                        onClick={processSale}
-                                                        disabled={cart.length === 0 || saleForm.processing}
-                                                        size="lg"
-                                                        className="flex items-center gap-2"
-                                                    >
-                                                        <CheckCircle className="h-4 w-4" />
-                                                        {saleForm.processing ? 'Processing...' : 'Complete'}
-                                                    </Button>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
-                                                    <p className="text-center">
-                                                        Save for later processing
-                                                    </p>
-                                                    <p className="text-center">
-                                                        Complete sale now
+                                            // Normal Mode - No payment method selected
+                                            <div className="text-center space-y-3">
+                                                <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                                    <p className="text-sm text-gray-600">
+                                                        Select a payment method to continue
                                                     </p>
                                                 </div>
                                             </div>
@@ -976,6 +1009,77 @@ export default function POSIndex({ products: initialProducts, members, pendingSa
                 </div>
                 )}
             </div>
+
+            {/* Payment Dialog */}
+            <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <DollarSign className="h-5 w-5" />
+                            Cash Payment
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="total-amount">Total Amount</Label>
+                            <div className="text-2xl font-bold text-green-600">
+                                {formatCurrency(total)}
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="received-cash">Received Cash</Label>
+                            <Input
+                                id="received-cash"
+                                type="number"
+                                step="0.01"
+                                placeholder="Enter received cash amount"
+                                value={receivedCash}
+                                onChange={(e) => setReceivedCash(e.target.value)}
+                                className="text-lg"
+                                autoFocus
+                            />
+                        </div>
+
+                        {receivedCash && parseFloat(receivedCash) >= total && (
+                            <div className="space-y-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium">Change to return:</span>
+                                    <span className="text-xl font-bold text-blue-600">
+                                        {formatCurrency(parseFloat(receivedCash) - total)}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {receivedCash && parseFloat(receivedCash) < total && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-sm text-red-600">
+                                    Insufficient amount. Need at least {formatCurrency(total)}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <DialogFooter className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={closePaymentDialog}
+                            disabled={saleForm.processing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={completeCashSale}
+                            disabled={!receivedCash || parseFloat(receivedCash) < total || saleForm.processing}
+                            className="flex items-center gap-2"
+                        >
+                            <CheckCircle className="h-4 w-4" />
+                            {saleForm.processing ? 'Processing...' : 'Complete Transaction'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

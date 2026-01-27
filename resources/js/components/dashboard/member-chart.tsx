@@ -22,59 +22,6 @@ export function MemberChart({ data }: MemberChartProps) {
         balance_distribution: { categories: [], data: [] },
     };
 
-    const growthOptions: Highcharts.Options = {
-        chart: {
-            type: 'line',
-            height: 200,
-            backgroundColor: 'transparent',
-        },
-        title: {
-            text: undefined,
-        },
-        xAxis: {
-            categories: safeData.growth.categories,
-            gridLineWidth: 0,
-            lineWidth: 0,
-            tickWidth: 0,
-            labels: {
-                enabled: false,
-            },
-        },
-        yAxis: {
-            title: {
-                text: undefined,
-            },
-            gridLineWidth: 0,
-            labels: {
-                enabled: false,
-            },
-        },
-        legend: {
-            enabled: false,
-        },
-        tooltip: {
-            formatter: function () {
-                return `<b>${this.x}</b><br/>New Members: <b>${this.y}</b>`;
-            },
-        },
-        plotOptions: {
-            line: {
-                marker: {
-                    enabled: false,
-                },
-                lineWidth: 2,
-            },
-        },
-        series: [{
-            name: 'New Members',
-            data: safeData.growth.data,
-            color: 'hsl(var(--primary))',
-        }],
-        credits: {
-            enabled: false,
-        },
-    };
-
     const balanceOptions: Highcharts.Options = {
         chart: {
             type: 'pie',
@@ -86,7 +33,9 @@ export function MemberChart({ data }: MemberChartProps) {
         },
         tooltip: {
             formatter: function () {
-                return `<b>${this.point.name}</b><br/>Members: <b>${this.y}</b>`;
+                const pointName = (this as any)?.point?.name ?? '';
+                const yValue = (this as any)?.y ?? 0;
+                return `<b>${pointName}</b><br/>Members: <b>${yValue}</b>`;
             },
         },
         plotOptions: {
@@ -130,13 +79,6 @@ export function MemberChart({ data }: MemberChartProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div>
-                    <h4 className="text-sm font-medium mb-2">Member Growth (30 Days)</h4>
-                    <HighchartsReact
-                        highcharts={Highcharts}
-                        options={growthOptions}
-                    />
-                </div>
                 <div>
                     <h4 className="text-sm font-medium mb-2">Balance Distribution</h4>
                     <HighchartsReact

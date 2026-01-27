@@ -1,8 +1,8 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::index
-* @see app/Http/Controllers/PendingTransactionsController.php:116
-* @route '/pending-transactions'
+* @see app/Http/Controllers/PendingTransactionsController.php:177
+* @route '/completed-transactions'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(options),
@@ -11,13 +11,13 @@ export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 index.definition = {
     methods: ["get","head"],
-    url: '/pending-transactions',
+    url: '/completed-transactions',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::index
-* @see app/Http/Controllers/PendingTransactionsController.php:116
-* @route '/pending-transactions'
+* @see app/Http/Controllers/PendingTransactionsController.php:177
+* @route '/completed-transactions'
 */
 index.url = (options?: RouteQueryOptions) => {
     return index.definition.url + queryParams(options)
@@ -25,8 +25,8 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::index
-* @see app/Http/Controllers/PendingTransactionsController.php:116
-* @route '/pending-transactions'
+* @see app/Http/Controllers/PendingTransactionsController.php:177
+* @route '/completed-transactions'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(options),
@@ -35,8 +35,8 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::index
-* @see app/Http/Controllers/PendingTransactionsController.php:116
-* @route '/pending-transactions'
+* @see app/Http/Controllers/PendingTransactionsController.php:177
+* @route '/completed-transactions'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: index.url(options),
@@ -45,8 +45,8 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::index
-* @see app/Http/Controllers/PendingTransactionsController.php:116
-* @route '/pending-transactions'
+* @see app/Http/Controllers/PendingTransactionsController.php:177
+* @route '/completed-transactions'
 */
 const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
     action: index.url(options),
@@ -55,8 +55,8 @@ const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => (
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::index
-* @see app/Http/Controllers/PendingTransactionsController.php:116
-* @route '/pending-transactions'
+* @see app/Http/Controllers/PendingTransactionsController.php:177
+* @route '/completed-transactions'
 */
 indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
     action: index.url(options),
@@ -65,8 +65,8 @@ indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\PendingTransactionsController::index
-* @see app/Http/Controllers/PendingTransactionsController.php:116
-* @route '/pending-transactions'
+* @see app/Http/Controllers/PendingTransactionsController.php:177
+* @route '/completed-transactions'
 */
 indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
     action: index.url({
@@ -80,8 +80,8 @@ indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 index.form = indexForm
 
-const pendingTransactions = {
+const completedTransactions = {
     index: Object.assign(index, index),
 }
 
-export default pendingTransactions
+export default completedTransactions

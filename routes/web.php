@@ -91,7 +91,9 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
         Route::post('pos/clear-edit-session', [App\Http\Controllers\POSController::class, 'clearEditSession'])->name('pos.clearEditSession');
 
         // Pending transaction management
+        Route::get('transactions', [App\Http\Controllers\PendingTransactionsController::class, 'transactions'])->name('transactions.index');
         Route::get('pending-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'index'])->name('pending-transactions.index');
+        Route::get('completed-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'completed'])->name('completed-transactions.index');
         Route::get('pending-sales/{pendingSale}/edit', [App\Http\Controllers\PendingTransactionsController::class, 'update'])->name('pending-sales.edit');
         Route::post('pending-sales/{pendingSale}/update', [App\Http\Controllers\PendingTransactionsController::class, 'updateTransaction'])->name('pending-sales.update-transaction');
         Route::post('pending-sales/{pendingSale}/payment', [App\Http\Controllers\PendingTransactionsController::class, 'addPayment'])->name('pending-sales.payment');

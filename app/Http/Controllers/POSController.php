@@ -9,6 +9,7 @@ use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class POSController extends Controller
@@ -127,50 +128,62 @@ class POSController extends Controller
         $memberId = $request->input('member_id');
         $paymentMethod = $request->input('payment_method');
 
-        // Validate stock availability (but don't deduct yet)
-        foreach ($cart as $item) {
-            $product = Product::find($item['id']);
-            if ($product->current_stock < $item['quantity']) {
-                return back()->with('error', "Insufficient stock for {$product->name}. Available: {$product->current_stock}");
-            }
-        }
-
-        // Check member status and credit limit if specified
-        if ($memberId) {
-            $member = Member::find($memberId);
-            if ($member->status !== 'Active') {
-                return back()->with('error', 'Cannot create pending sale for inactive member.');
-            }
-
-            // Update member balance immediately for pay later transactions
-            if ($paymentMethod === 'pay_later') {
-                $creditLimit = Setting::getCreditLimit();
-                if ($member->balance >= $creditLimit) {
-                    return back()->with('error', "Member cannot purchase: unpaid amount is {$creditLimit} VT or more.");
+        return DB::transaction(function () use ($cart, $memberId, $paymentMethod, $total, $request) {
+            // Validate + deduct stock now (items are handed over immediately)
+            foreach ($cart as $item) {
+                $product = Product::lockForUpdate()->find($item['id']);
+                if (!$product) {
+                    return back()->with('error', 'Product not found.');
                 }
-                $member->balance += $total;
-                $member->save();
+
+                if ($product->current_stock < $item['quantity']) {
+                    return back()->with('error', "Insufficient stock for {$product->name}. Available: {$product->current_stock}");
+                }
+
+                $product->current_stock -= $item['quantity'];
+                $product->save();
             }
-        } elseif ($paymentMethod === 'pay_later') {
-            return back()->with('error', 'Pay later option requires selecting a member.');
-        }
 
-        // Prepare items data with product details
-        $items = collect($cart)->map(function ($item) {
-            $product = Product::find($item['id']);
+            // Check member status and credit limit if specified
+            if ($memberId) {
+                $member = Member::lockForUpdate()->find($memberId);
+                if (!$member) {
+                    return back()->with('error', 'Member not found.');
+                }
 
-            return [
-                'product_id' => $product->id,
-                'name' => $product->name,
-                'quantity' => $item['quantity'],
-                'unit_price' => $product->selling_price,
-                'total' => $product->selling_price * $item['quantity'],
-            ];
-        })->toArray();
+                if ($member->status !== 'Active') {
+                    return back()->with('error', 'Cannot create pending sale for inactive member.');
+                }
 
-        // Determine location for the sale
-        $user = Auth::user();
-        $locationId = null;
+                // Update member balance immediately for pay later transactions
+                if ($paymentMethod === 'pay_later') {
+                    $creditLimit = Setting::getCreditLimit();
+                    if ($member->balance >= $creditLimit) {
+                        return back()->with('error', "Member cannot purchase: unpaid amount is {$creditLimit} VT or more.");
+                    }
+                    $member->balance += $total;
+                    $member->save();
+                }
+            } elseif ($paymentMethod === 'pay_later') {
+                return back()->with('error', 'Pay later option requires selecting a member.');
+            }
+
+            // Prepare items data with product details
+            $items = collect($cart)->map(function ($item) {
+                $product = Product::find($item['id']);
+
+                return [
+                    'product_id' => $product->id,
+                    'name' => $product->name,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $product->selling_price,
+                    'total' => $product->selling_price * $item['quantity'],
+                ];
+            })->toArray();
+
+            // Determine location for the sale
+            $user = Auth::user();
+            $locationId = null;
 
         if ($user->hasRole('Admin')) {
             // Admin can choose location, default to first available
@@ -180,18 +193,19 @@ class POSController extends Controller
             $locationId = $user->primaryLocation()?->id ?? $user->locations()->first()?->id;
         }
 
-        // Create pending sale
-        PendingSale::create([
-            'location_id' => $locationId,
-            'member_id' => $memberId,
-            'created_by' => Auth::id(),
-            'items' => $items,
-            'subtotal' => $total,
-            'payment_method' => $paymentMethod,
-            'notes' => $request->input('notes'),
-        ]);
+            // Create pending sale
+            PendingSale::create([
+                'location_id' => $locationId,
+                'member_id' => $memberId,
+                'created_by' => Auth::id(),
+                'items' => $items,
+                'subtotal' => $total,
+                'payment_method' => $paymentMethod,
+                'notes' => $request->input('notes'),
+            ]);
 
-        return back()->with('success', 'Transaction saved as pending. Items can now be handed over.');
+            return back()->with('success', 'Transaction saved as pending. Items can now be handed over.');
+        });
     }
 
     /**

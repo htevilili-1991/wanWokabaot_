@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Clock, CreditCard, DollarSign, Folder, LayoutGrid, Package, Users } from 'lucide-react';
+import { BookOpen, CreditCard, Clock, CheckCircle, DollarSign, Home, LayoutGrid, Package, Users } from 'lucide-react';
 
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -17,7 +17,7 @@ import { dashboard } from '@/routes';
 import { index as membersIndex } from '@/routes/members';
 import { index as inventoryIndex } from '@/routes/inventory';
 import { index as posIndex } from '@/routes/pos';
-import { index as pendingTransactionsIndex } from '@/routes/pending-transactions';
+import { index as transactionsIndex } from '@/routes/transactions';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as dividendsIndex, member as dividendsMember } from '@/routes/dividends';
 import { type NavItem, type SharedData, type User } from '@/types';
@@ -51,8 +51,8 @@ const allMainNavItems: Array<NavItem & { permissions?: string[] }> = [
         permissions: ['create pending transactions'], // POS requires transaction creation
     },
     {
-        title: 'Pending Transactions',
-        href: pendingTransactionsIndex(),
+        title: 'Transactions',
+        href: transactionsIndex(), // Default to completed transactions
         icon: Clock,
         permissions: ['view pending transactions'],
     },
