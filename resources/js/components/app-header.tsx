@@ -1,5 +1,6 @@
-import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, Settings, ShoppingCart, Bell, Sun, Moon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,9 +31,14 @@ import {
 } from '@/components/ui/tooltip';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useActiveUrl } from '@/hooks/use-active-url';
+import { useAppearance } from '@/hooks/use-appearance';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as inventoryIndex } from '@/routes/inventory';
+import { index as posIndex } from '@/routes/pos';
+import { edit as profileEdit } from '@/routes/profile';
+import { index as systemIndex } from '@/routes/system';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 
 import AppLogo from './app-logo';
@@ -71,6 +77,74 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const { urlIsActive } = useActiveUrl();
+
+    const { resolvedAppearance, updateAppearance } = useAppearance();
+
+    const [pendingCartCount, setPendingCartCount] = useState(0);
+    const [lowStockItems, setLowStockItems] = useState<Array<{ id: number; name: string; current_stock: number; minimum_stock: number; category: string }>>([]);
+
+    const lowStockCount = lowStockItems.length;
+
+    const inventoryOutOfStockFirstUrl = useMemo(() => {
+        return inventoryIndex({
+            query: {
+                sort_by: 'current_stock',
+                sort_direction: 'asc',
+            },
+        }).url;
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const computePending = () => {
+            try {
+                const raw = localStorage.getItem('pos_carts');
+                const carts = raw ? JSON.parse(raw) : [];
+                const count = Array.isArray(carts)
+                    ? carts.filter((c: any) => Array.isArray(c?.items) && c.items.length > 0).length
+                    : 0;
+                setPendingCartCount(count);
+            } catch {
+                setPendingCartCount(0);
+            }
+        };
+
+        computePending();
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'pos_carts') computePending();
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const fetchLowStock = async () => {
+            try {
+                const res = await fetch('/inventory/low-stock?limit=6', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        Accept: 'application/json',
+                    },
+                });
+                if (!res.ok) return;
+                const json = await res.json();
+                setLowStockItems(Array.isArray(json?.items) ? json.items : []);
+            } catch {
+                // ignore
+            }
+        };
+
+        fetchLowStock();
+        const t = window.setInterval(fetchLowStock, 60_000);
+        return () => window.clearInterval(t);
+    }, []);
+
+    const toggleTheme = () => {
+        updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark');
+    };
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -215,6 +289,109 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Settings Gear */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                                    <Settings className="size-5 opacity-80" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end">
+                                <button
+                                    type="button"
+                                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded"
+                                    onClick={() => router.visit(profileEdit().url)}
+                                >
+                                    Profile Settings
+                                </button>
+                                <button
+                                    type="button"
+                                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded"
+                                    onClick={() => router.visit(systemIndex().url)}
+                                >
+                                    System Settings
+                                </button>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Pending carts (POS) */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="relative h-9 w-9"
+                            onClick={() => router.visit(posIndex().url)}
+                        >
+                            <ShoppingCart className="size-5 opacity-80" />
+                            {pendingCartCount > 0 && (
+                                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] leading-4 text-center">
+                                    {pendingCartCount > 9 ? '9+' : pendingCartCount}
+                                </span>
+                            )}
+                        </Button>
+
+                        {/* Low stock notifications */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                                    <Bell className="size-5 opacity-80" />
+                                    {lowStockCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary" />
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-80" align="end">
+                                <div className="px-2 py-1.5 text-sm font-medium">Low stock</div>
+                                <div className="max-h-64 overflow-auto">
+                                    {lowStockItems.length === 0 ? (
+                                        <div className="px-2 py-4 text-sm text-muted-foreground">
+                                            No low stock items
+                                        </div>
+                                    ) : (
+                                        lowStockItems.map((p) => (
+                                            <button
+                                                key={p.id}
+                                                type="button"
+                                                className="w-full text-left px-2 py-2 text-sm hover:bg-accent rounded"
+                                                onClick={() => router.visit(inventoryOutOfStockFirstUrl)}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-medium">{p.name}</span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {p.current_stock}/{p.minimum_stock}
+                                                    </span>
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">{p.category}</div>
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+                                <div className="border-t border-border mt-1 pt-1">
+                                    <button
+                                        type="button"
+                                        className="w-full text-left px-2 py-2 text-sm hover:bg-accent rounded"
+                                        onClick={() => router.visit(inventoryOutOfStockFirstUrl)}
+                                    >
+                                        View inventory (out of stock first)
+                                    </button>
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Theme toggle */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9"
+                            onClick={toggleTheme}
+                        >
+                            {resolvedAppearance === 'dark' ? (
+                                <Sun className="size-5 opacity-80" />
+                            ) : (
+                                <Moon className="size-5 opacity-80" />
+                            )}
+                        </Button>
+
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button

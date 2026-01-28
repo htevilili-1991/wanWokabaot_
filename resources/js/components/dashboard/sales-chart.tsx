@@ -13,6 +13,10 @@ export function SalesChart({ data }: SalesChartProps) {
     // Ensure data has the expected structure
     const safeData = data || { categories: [], data: [] };
 
+    const falconBlue = '#2c7be5';
+    const gridColor = 'var(--border)';
+    const labelColor = 'var(--muted-foreground)';
+
     const options: Highcharts.Options = {
         chart: {
             type: 'area',
@@ -29,7 +33,7 @@ export function SalesChart({ data }: SalesChartProps) {
             tickWidth: 0,
             labels: {
                 style: {
-                    color: 'hsl(var(--muted-foreground))',
+                    color: labelColor,
                     fontSize: '12px',
                 },
             },
@@ -38,13 +42,14 @@ export function SalesChart({ data }: SalesChartProps) {
             title: {
                 text: 'Sales (VT)',
                 style: {
-                    color: 'hsl(var(--muted-foreground))',
+                    color: labelColor,
                 },
             },
-            gridLineWidth: 0,
+            gridLineWidth: 1,
+            gridLineColor: gridColor,
             labels: {
                 style: {
-                    color: 'hsl(var(--muted-foreground))',
+                    color: labelColor,
                     fontSize: '12px',
                 },
                 formatter: function () {
@@ -66,18 +71,26 @@ export function SalesChart({ data }: SalesChartProps) {
                     enabled: false,
                 },
                 lineWidth: 2,
+                lineColor: falconBlue,
+                fillColor: {
+                    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                    stops: [
+                        [0, 'rgba(44, 123, 229, 0.22)'],
+                        [1, 'rgba(44, 123, 229, 0.00)'],
+                    ],
+                },
                 states: {
                     hover: {
                         lineWidth: 2,
                     },
                 },
-                fillOpacity: 0.1,
+                fillOpacity: 1,
             },
         },
         series: [{
             name: 'Sales',
             data: safeData.data,
-            color: 'hsl(var(--primary))',
+            color: falconBlue,
         }],
         credits: {
             enabled: false,

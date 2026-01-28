@@ -22,6 +22,9 @@ export function MemberChart({ data }: MemberChartProps) {
         balance_distribution: { categories: [], data: [] },
     };
 
+    const labelColor = 'var(--muted-foreground)';
+    const falconPalette = ['#2c7be5', '#00d27a', '#27bcfd', '#f5803e', '#e63757'];
+
     const balanceOptions: Highcharts.Options = {
         chart: {
             type: 'pie',
@@ -53,13 +56,14 @@ export function MemberChart({ data }: MemberChartProps) {
             verticalAlign: 'middle',
             layout: 'vertical',
             itemStyle: {
-                color: 'hsl(var(--muted-foreground))',
+                color: labelColor,
                 fontSize: '12px',
             },
         },
         series: [{
             name: 'Members',
             colorByPoint: true,
+            colors: falconPalette,
             data: safeData.balance_distribution.categories.map((category, index) => ({
                 name: category,
                 y: safeData.balance_distribution.data[index] || 0,

@@ -56,6 +56,32 @@ class InventoryController extends Controller
     }
 
     /**
+     * Return low stock items for notifications.
+     */
+    public function lowStock(Request $request)
+    {
+        $limit = (int) $request->get('limit', 5);
+
+        $query = Product::query();
+
+        // Restrict to user's assigned locations if not Admin
+        if ($request->has('assigned_location_ids')) {
+            $query->whereIn('location_id', $request->assigned_location_ids);
+        }
+
+        $items = $query
+            ->whereColumn('current_stock', '<=', 'minimum_stock')
+            ->orderBy('current_stock', 'asc')
+            ->limit($limit)
+            ->get(['id', 'name', 'current_stock', 'minimum_stock', 'category']);
+
+        return response()->json([
+            'items' => $items,
+            'count' => $items->count(),
+        ]);
+    }
+
+    /**
      * Show the form for creating a new product.
      */
     public function create()

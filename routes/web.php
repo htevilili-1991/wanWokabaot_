@@ -55,6 +55,9 @@ Route::middleware(['auth'])->group(function () {
     // View-only inventory routes for Members
     Route::get('inventory', [App\Http\Controllers\InventoryController::class, 'index'])->name('inventory.index');
 
+    // Low stock notifications
+    Route::get('inventory/low-stock', [App\Http\Controllers\InventoryController::class, 'lowStock'])->name('inventory.low-stock');
+
     // View pending transactions for Members
     Route::get('pending-transactions', [App\Http\Controllers\PendingTransactionsController::class, 'index'])->name('pending-transactions.index');
 });

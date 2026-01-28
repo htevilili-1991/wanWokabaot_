@@ -13,6 +13,12 @@ export function InventoryChart({ data }: InventoryChartProps) {
     // Ensure data has the expected structure
     const safeData = data || { categories: [], data: [] };
 
+    const gridColor = 'var(--border)';
+    const labelColor = 'var(--muted-foreground)';
+
+    // Falcon-like category palette (blue/teal/info/warn/danger)
+    const barColors = ['#2c7be5', '#00d27a', '#27bcfd', '#f5803e', '#e63757'];
+
     const options: Highcharts.Options = {
         chart: {
             type: 'column',
@@ -29,7 +35,7 @@ export function InventoryChart({ data }: InventoryChartProps) {
             tickWidth: 0,
             labels: {
                 style: {
-                    color: 'hsl(var(--muted-foreground))',
+                    color: labelColor,
                     fontSize: '12px',
                 },
                 rotation: -45,
@@ -39,13 +45,14 @@ export function InventoryChart({ data }: InventoryChartProps) {
             title: {
                 text: 'Stock Quantity',
                 style: {
-                    color: 'hsl(var(--muted-foreground))',
+                    color: labelColor,
                 },
             },
-            gridLineWidth: 0,
+            gridLineWidth: 1,
+            gridLineColor: gridColor,
             labels: {
                 style: {
-                    color: 'hsl(var(--muted-foreground))',
+                    color: labelColor,
                     fontSize: '12px',
                 },
             },
@@ -62,6 +69,7 @@ export function InventoryChart({ data }: InventoryChartProps) {
             column: {
                 borderWidth: 0,
                 borderRadius: 4,
+                colorByPoint: true,
                 dataLabels: {
                     enabled: true,
                     style: {
@@ -74,7 +82,7 @@ export function InventoryChart({ data }: InventoryChartProps) {
         series: [{
             name: 'Stock',
             data: safeData.data,
-            color: 'hsl(var(--primary))',
+            colors: barColors,
         }],
         credits: {
             enabled: false,

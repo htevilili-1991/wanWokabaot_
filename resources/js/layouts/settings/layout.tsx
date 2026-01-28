@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useActiveUrl } from '@/hooks/use-active-url';
 import { cn, toUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { index as rolesPermissionsIndex } from '@/routes/roles-permissions';
 import { show } from '@/routes/two-factor';
@@ -33,12 +32,6 @@ const allSidebarNavItems: Array<NavItem & { permissions?: string[] }> = [
     {
         title: 'Two-Factor Auth',
         href: show(),
-        icon: null,
-        permissions: ['edit profile'], // All authenticated users
-    },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
         icon: null,
         permissions: ['edit profile'], // All authenticated users
     },

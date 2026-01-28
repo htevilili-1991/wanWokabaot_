@@ -1,4 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -20,6 +22,13 @@ export default function Login({
     status,
     canResetPassword,
 }: LoginProps) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [capsLockOn, setCapsLockOn] = useState(false);
+
+    useEffect(() => {
+        setCapsLockOn(false);
+    }, []);
+
     return (
         <AuthLayout
             title="Log in to your account"
@@ -34,19 +43,29 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
+                        {(errors.email || errors.password) && (
+                            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                                Invalid credentials. Please check your email and password.
+                            </div>
+                        )}
+
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
+                                <div className="relative">
+                                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        name="email"
+                                        required
+                                        autoFocus
+                                        tabIndex={1}
+                                        autoComplete="email"
+                                        placeholder="email@example.com"
+                                        className="h-11 pl-10 focus-visible:ring-ring/40"
+                                    />
+                                </div>
                                 <InputError message={errors.email} />
                             </div>
 
@@ -63,15 +82,38 @@ export default function Login({
                                         </TextLink>
                                     )}
                                 </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
+                                <div className="relative">
+                                    <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="current-password"
+                                        placeholder="Password"
+                                        className="h-11 pl-10 pr-10 focus-visible:ring-ring/40"
+                                        onKeyUp={(e) => setCapsLockOn((e as any).getModifierState?.('CapsLock') ?? false)}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                                        onClick={() => setShowPassword((v) => !v)}
+                                        tabIndex={-1}
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="size-4" />
+                                        ) : (
+                                            <Eye className="size-4" />
+                                        )}
+                                    </button>
+                                </div>
+                                {capsLockOn && (
+                                    <div className="text-xs text-muted-foreground">
+                                        Caps Lock is on
+                                    </div>
+                                )}
                                 <InputError message={errors.password} />
                             </div>
 
@@ -86,7 +128,7 @@ export default function Login({
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-4 w-full h-11 shadow-sm hover:bg-primary/90"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
@@ -94,6 +136,16 @@ export default function Login({
                                 {processing && <Spinner />}
                                 Log in
                             </Button>
+
+                            <div className="text-center text-xs text-muted-foreground">
+                                Need help?{' '}
+                                <a
+                                    href="mailto:htevilili@vanuatu.gov.vu"
+                                    className="text-[color:var(--ring)] hover:underline"
+                                >
+                                    Contact admin
+                                </a>
+                            </div>
                         </div>
                     </>
                 )}
