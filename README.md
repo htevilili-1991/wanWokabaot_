@@ -61,6 +61,29 @@ Add New Member
 
 ---
 
+## Performance Upgrade: Laravel Octane + FrankenPHP
+We upgraded the application from the standard `php artisan serve` to **Laravel Octane** running on **FrankenPHP**. This keeps the Laravel application in memory instead of booting on every request.
+### Before: Standard Laravel Development Server (`php artisan serve`)
+
+**~290–300 requests/second**  
+**Median request duration: ~19–20 ms**  
+**TTFB (including server processing): ~19.5–19.9 ms**  
+
+Noticeable delay on repeated page loads and actions (especially POS cart updates, dashboard refreshes, and member queries).
+<img width="1203" height="391" alt="image" src="https://github.com/user-attachments/assets/82b8ae56-d782-4b15-a390-ac8b46f97467" />
+
+### After: Laravel Octane + FrankenPHP
+**~2900–3100 requests/second** (≈ **10× improvement**)  
+**Median request duration: ~2.9–3.2 ms**  
+**TTFB (including server processing): ~2.93–3.20 ms**  
+
+Dramatically faster — near-instant page loads, smoother POS interactions, and responsive dashboard/chart rendering even under load.
+<img width="1199" height="350" alt="image" src="https://github.com/user-attachments/assets/57001112-e2bd-4945-bc9d-116803d260ff" />
+
+Tests run locally with Pest Stressless:  
+`./vendor/bin/pest stress http://127.0.0.1:8000 --duration=5`
+
+---
 ## Key Features
 
 - **POS (Point of Sale)**
