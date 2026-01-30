@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use App\Models\CashBox;
+use App\Models\CashBalanceHistory;
 
 class PendingSale extends Model
 {
@@ -147,6 +149,31 @@ class PendingSale extends Model
         // Update member balance if applicable (only for cash payments, pay_later already updated)
         if ($this->member_id && $this->payment_method === 'cash') {
             $this->member->increment('balance', $this->subtotal);
+        }
+
+        // Update primary cash box for cash payments
+        if ($this->payment_method === 'cash') {
+            $primaryCashBox = CashBox::getPrimary();
+            if ($primaryCashBox) {
+                $primaryCashBox->addFunds(
+                    $this->subtotal,
+                    "Sale payment (Ref: {$this->transaction_id})",
+                    $user->id
+                );
+
+                // Log the cash box balance change
+                CashBalanceHistory::create([
+                    'cash_box_id' => $primaryCashBox->id,
+                    'old_balance' => $primaryCashBox->current_balance - $this->subtotal,
+                    'new_balance' => $primaryCashBox->current_balance,
+                    'difference' => $this->subtotal,
+                    'transaction_type' => 'sale',
+                    'reason' => "Sale payment (Ref: {$this->transaction_id})",
+                    'updated_by' => $user->id,
+                    'transactionable_id' => $this->id,
+                    'transactionable_type' => PendingSale::class,
+                ]);
+            }
         }
 
         return true;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -46,6 +47,7 @@ class InventoryController extends Controller
 
         return Inertia::render('inventory/index', [
             'products' => $products,
+            'categories' => Category::orderBy('name')->get(),
             'filters' => [
                 'search' => $request->search,
                 'sort_by' => $sortBy,

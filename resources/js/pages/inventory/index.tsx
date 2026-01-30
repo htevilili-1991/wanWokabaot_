@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DeleteConfirmationPopover } from '@/components/delete-confirmation-popover';
+import { CategoryDropdown } from '@/components/category-dropdown';
 import { destroy, index, store, update } from '@/routes/inventory';
 import inventory from '@/routes/inventory';
 import { type SharedData } from '@/types';
@@ -40,6 +41,10 @@ interface InventoryPageProps {
         from: number;
         to: number;
     };
+    categories: Array<{
+        id: number;
+        name: string;
+    }>;
     filters: {
         search: string;
         sort_by: string;
@@ -55,7 +60,7 @@ const breadcrumbs = [
     },
 ];
 
-export default function InventoryIndex({ products, filters }: InventoryPageProps) {
+export default function InventoryIndex({ products, categories, filters }: InventoryPageProps) {
     const { flash } = usePage<SharedData>().props;
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [sortBy, setSortBy] = useState(filters.sort_by || 'created_at');
@@ -315,12 +320,9 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
                                             </div>
                                             <div>
                                                 <Label htmlFor="category">Category *</Label>
-                                                <Input
-                                                    id="category"
-                                                    type="text"
+                                                <CategoryDropdown
                                                     value={createForm.data.category}
-                                                    onChange={(e) => createForm.setData('category', e.target.value)}
-                                                    required
+                                                    onChange={(value) => createForm.setData('category', value)}
                                                 />
                                             </div>
                                             <div>
@@ -618,12 +620,9 @@ export default function InventoryIndex({ products, filters }: InventoryPageProps
                                                                     </div>
                                                                     <div>
                                                                         <Label htmlFor="edit-category">Category *</Label>
-                                                                        <Input
-                                                                            id="edit-category"
-                                                                            type="text"
+                                                                        <CategoryDropdown
                                                                             value={editForm.data.category}
-                                                                            onChange={(e) => editForm.setData('category', e.target.value)}
-                                                                            required
+                                                                            onChange={(value) => editForm.setData('category', value)}
                                                                         />
                                                                     </div>
                                                                     <div>

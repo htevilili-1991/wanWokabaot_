@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, CreditCard, Clock, CheckCircle, DollarSign, Home, LayoutGrid, Package, Users } from 'lucide-react';
+import { BookOpen, CreditCard, Clock, CheckCircle, DollarSign, Home, LayoutGrid, Package, Users, Wallet } from 'lucide-react';
 
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -20,6 +20,8 @@ import { index as posIndex } from '@/routes/pos';
 import { index as transactionsIndex } from '@/routes/transactions';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as dividendsIndex, member as dividendsMember } from '@/routes/dividends';
+import { index as cashBoxesIndex } from '@/routes/cash-boxes';
+import { index as cashTransfersIndex } from '@/routes/cash-transfers';
 import { type NavItem, type SharedData, type User } from '@/types';
 
 import AppLogo from './app-logo';
@@ -73,6 +75,18 @@ const allMainNavItems: Array<NavItem & { permissions?: string[] }> = [
         href: dividendsMember(),
         icon: DollarSign,
         permissions: ['view dividends'], // Member dividend view
+    },
+    {
+        title: 'Cash Boxes',
+        href: cashBoxesIndex(),
+        icon: Wallet,
+        permissions: ['view dashboard'], // Admin/Treasurer cash management
+    },
+    {
+        title: 'Cash Transfers',
+        href: cashTransfersIndex(),
+        icon: CreditCard,
+        permissions: ['view dashboard'], // Admin/Treasurer cash transfers
     },
 ];
 
@@ -171,7 +185,6 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
             </SidebarFooter>
         </Sidebar>
     );

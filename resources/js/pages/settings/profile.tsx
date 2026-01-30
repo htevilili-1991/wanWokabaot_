@@ -1,5 +1,6 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
@@ -8,11 +9,21 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData } from '@/types';
+
+const suggestedIcons = [
+    '😀', '😎', '🤓', '🧑‍💼', '👤', '🦸', '🥷', '🤖', '👽', '🦄',
+    '🐱', '🐶', '🦊', '🐼', '🦁', '🐯', '🐨', '🐷', '🐸', '🐵',
+    '🌟', '🔥', '⚡', '🌈', '🌺', '🍕', '☕', '🎯', '🎨', '🎵',
+    '🦉', '🐝', '🐧', '🐲', '🦋', '🐢', '🐬', '🐙', '�', '🕵️',
+    '🧙', '👻', '👾', '👑', '🚀', '💡', '💎', '🎮', '🌍', '💻',
+    '⚙️', '📡', '🔋', '🍃', '🌊', '🌙', '🏔️', '🥊', '🛹',
+];
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -29,6 +40,11 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<SharedData>().props;
+    const [selectedIcon, setSelectedIcon] = useState(auth.user.avatar || '');
+
+    const handleIconSelect = (icon: string) => {
+        setSelectedIcon(icon);
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -38,12 +54,6 @@ export default function Profile({
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <Heading
-                        variant="small"
-                        title="Profile information"
-                        description="Update your name and email address"
-                    />
-
                     <Form
                         {...ProfileController.update.form()}
                         options={{
@@ -53,6 +63,53 @@ export default function Profile({
                     >
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
+                                {/* Profile icon section */}
+                                <div className="space-y-4">
+                                    <Heading
+                                        variant="small"
+                                        title="Profile icon"
+                                        description="Choose an icon or emoji to represent you"
+                                    />
+                                    <div className="flex items-center gap-6">
+                                        <Avatar className="h-24 w-24">
+                                            <AvatarFallback className="text-4xl bg-neutral-100 dark:bg-neutral-800">
+                                                {selectedIcon || '👤'}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">
+                                                Click an icon below to change your profile icon.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-10 gap-2">
+                                        {suggestedIcons.map((icon) => (
+                                            <button
+                                                key={icon}
+                                                type="button"
+                                                onClick={() => handleIconSelect(icon)}
+                                                className={`h-10 w-10 rounded-lg border text-2xl transition-colors ${
+                                                    selectedIcon === icon
+                                                        ? 'border-primary bg-primary/10'
+                                                        : 'border-border hover:bg-accent'
+                                                }`}
+                                            >
+                                                {icon}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="hidden"
+                                        name="avatar"
+                                        value={selectedIcon}
+                                    />
+                                </div>
+
+                                <Heading
+                                    variant="small"
+                                    title="Profile information"
+                                    description="Update your name and email address"
+                                />
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">Name</Label>
 

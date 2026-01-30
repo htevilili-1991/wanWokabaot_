@@ -25,9 +25,13 @@ interface DashboardProps {
         total_inventory_value: number | string;
         pending_transactions: number;
         total_unpaid_amount: number | string;
-        today_sales: number | string;
+        total_sales: number | string;
     };
     salesChart?: {
+        categories: string[];
+        data: number[];
+    };
+    annualSalesChart?: {
         categories: string[];
         data: number[];
     };
@@ -71,6 +75,7 @@ interface DashboardProps {
 export default function Dashboard({
     kpis,
     salesChart,
+    annualSalesChart,
     inventoryChart,
     memberChart,
     recentSales,
@@ -85,7 +90,7 @@ export default function Dashboard({
         total_inventory_value: 0,
         pending_transactions: 0,
         total_unpaid_amount: 0,
-        today_sales: 0,
+        total_sales: 0,
     };
 
     const safeKpis = kpis || defaultKpis;
@@ -104,7 +109,7 @@ export default function Dashboard({
 
     const formatCurrency = (amount: number | string) => {
         const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-        return `VT ${numAmount.toFixed(2)}`;
+        return `VT ${(isNaN(numAmount) ? '0.00' : numAmount.toFixed(2))}`;
     };
 
     return (
@@ -129,8 +134,8 @@ export default function Dashboard({
                         trend={{ value: 8, isPositive: true }}
                     />
                     <KpiCard
-                        title="Today's Sales"
-                        value={formatCurrency(safeKpis.today_sales)}
+                        title="Total Sales"
+                        value={formatCurrency(safeKpis.total_sales)}
                         icon={DollarSign}
                         description="Completed transactions"
                         trend={{ value: 15, isPositive: true }}
@@ -147,7 +152,7 @@ export default function Dashboard({
                 {/* Charts Row */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <div className="md:col-span-2">
-                        <SalesChart data={safeSalesChart} />
+                        <SalesChart data={safeSalesChart} annualData={annualSalesChart} />
                     </div>
                     <div>
                         <InventoryChart data={safeInventoryChart} />

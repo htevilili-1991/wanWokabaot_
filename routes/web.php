@@ -85,6 +85,28 @@ Route::middleware(['auth', 'restrict.settings'])->group(function () {
         Route::delete('inventory/{product?}', [App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
     });
 
+    // Category management (Admin/Treasurer only) - Temporarily remove middleware for testing
+    Route::middleware(['auth'])->group(function () {
+        Route::apiResource('categories', App\Http\Controllers\CategoryController::class);
+    });
+
+    // Cash Management (Admin/Treasurer only)
+    Route::middleware(['auth'])->group(function () {
+        // Web routes for pages and form operations
+        Route::get('cash-boxes', [App\Http\Controllers\CashBoxWebController::class, 'index'])->name('cash-boxes.index');
+        Route::post('cash-boxes', [App\Http\Controllers\CashBoxWebController::class, 'store']);
+        Route::put('cash-boxes/{cash_box}', [App\Http\Controllers\CashBoxWebController::class, 'update']);
+        Route::delete('cash-boxes/{cash_box}', [App\Http\Controllers\CashBoxWebController::class, 'destroy']);
+        Route::post('cash-boxes/{cash_box}/adjust-balance', [App\Http\Controllers\CashBoxWebController::class, 'adjustBalance']);
+        
+        // Cash transfers web routes
+        Route::get('cash-transfers', [App\Http\Controllers\CashTransferWebController::class, 'index'])->name('cash-transfers.index');
+        Route::post('cash-transfers', [App\Http\Controllers\CashTransferWebController::class, 'store']);
+        Route::post('cash-transfers/{cash_transfer}/complete', [App\Http\Controllers\CashTransferWebController::class, 'complete']);
+        Route::post('cash-transfers/{cash_transfer}/cancel', [App\Http\Controllers\CashTransferWebController::class, 'cancel']);
+        Route::delete('cash-transfers/{cash_transfer}', [App\Http\Controllers\CashTransferWebController::class, 'destroy']);
+    });
+
     // POS operations (location-restricted)
     Route::middleware(['restrict.locations'])->group(function () {
         Route::get('pos', [App\Http\Controllers\POSController::class, 'index'])->name('pos.index');

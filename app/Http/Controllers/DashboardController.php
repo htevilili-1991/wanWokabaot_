@@ -28,13 +28,14 @@ class DashboardController extends Controller
                     'total_inventory_value' => 0,
                     'pending_transactions' => 0,
                     'total_unpaid_amount' => 0,
-                    'today_sales' => 0,
+                    'total_sales' => 0,
                 ];
             }
 
             return inertia('dashboard', [
                 'kpis' => $kpis,
                 'salesChart' => $this->getSalesChartData(),
+                'annualSalesChart' => $this->getAnnualSalesChartData(),
                 'inventoryChart' => $this->getInventoryChartData(),
                 'memberChart' => $this->getMemberChartData(),
                 'recentSales' => $this->getRecentSales(),
@@ -55,9 +56,10 @@ class DashboardController extends Controller
                     'total_inventory_value' => 0,
                     'pending_transactions' => 0,
                     'total_unpaid_amount' => 0,
-                    'today_sales' => 0,
+                    'total_sales' => 0,
                 ],
                 'salesChart' => ['categories' => [], 'data' => []],
+                'annualSalesChart' => ['categories' => [], 'data' => []],
                 'inventoryChart' => ['categories' => [], 'data' => []],
                 'memberChart' => [
                     'growth' => ['categories' => [], 'data' => []],
@@ -80,10 +82,8 @@ class DashboardController extends Controller
             $pendingTransactions = PendingSale::where('status', 'pending')->count();
             $totalUnpaidAmount = Member::sum('balance') ?? 0;
 
-            // Calculate today's sales (assuming we have a sales table or we can derive from pending sales)
-            $todaySales = PendingSale::where('status', 'completed')
-                ->whereDate('completed_at', today())
-                ->sum('subtotal') ?? 0;
+            // Calculate total sales (all completed sales)
+            $totalSales = PendingSale::where('status', 'completed')->sum('subtotal') ?? 0;
 
             $result = [
                 'total_members' => $totalMembers,
@@ -92,7 +92,7 @@ class DashboardController extends Controller
                 'total_inventory_value' => $totalInventoryValue,
                 'pending_transactions' => $pendingTransactions,
                 'total_unpaid_amount' => $totalUnpaidAmount,
-                'today_sales' => $todaySales,
+                'total_sales' => $totalSales,
             ];
 
             \Log::info('KPIs calculated successfully:', $result);
@@ -109,7 +109,7 @@ class DashboardController extends Controller
                 'total_inventory_value' => 0,
                 'pending_transactions' => 0,
                 'total_unpaid_amount' => 0,
-                'today_sales' => 0,
+                'total_sales' => 0,
             ];
         }
     }
@@ -133,6 +133,44 @@ class DashboardController extends Controller
                 $categories[] = Carbon::now()->subDays($i)->format('M d');
 
                 $sale = $salesData->firstWhere('date', $date);
+                $data[] = $sale ? (float) $sale->total : 0;
+            }
+
+            return [
+                'categories' => $categories,
+                'data' => $data,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'categories' => [],
+                'data' => [],
+            ];
+        }
+    }
+
+    private function getAnnualSalesChartData()
+    {
+        try {
+            // Get sales data for the last 12 months
+            $salesData = PendingSale::where('status', 'completed')
+                ->where('completed_at', '>=', Carbon::now()->subMonths(12))
+                ->selectRaw('YEAR(completed_at) as year, MONTH(completed_at) as month, SUM(subtotal) as total')
+                ->groupBy('year', 'month')
+                ->orderBy('year')
+                ->orderBy('month')
+                ->get();
+
+            $categories = [];
+            $data = [];
+
+            for ($i = 11; $i >= 0; $i--) {
+                $date = Carbon::now()->subMonths($i);
+                $categories[] = $date->format('M Y');
+                
+                $year = $date->year;
+                $month = $date->month;
+                
+                $sale = $salesData->where('year', $year)->where('month', $month)->first();
                 $data[] = $sale ? (float) $sale->total : 0;
             }
 

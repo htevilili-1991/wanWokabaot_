@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react';
-import { Bell, Moon, Settings, ShoppingCart, Sun } from 'lucide-react';
+import { router, usePage } from '@inertiajs/react';
+import { Bell, Moon, Settings, ShoppingCart, Sun, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -7,15 +7,20 @@ import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppearance } from '@/hooks/use-appearance';
+import { useInitials } from '@/hooks/use-initials';
 import { index as inventoryIndex } from '@/routes/inventory';
 import { index as posIndex } from '@/routes/pos';
 import { edit as profileEdit } from '@/routes/profile';
 import { index as systemIndex } from '@/routes/system';
-import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
+import { logout } from '@/routes';
+import { type BreadcrumbItem as BreadcrumbItemType, type SharedData } from '@/types';
 
 export function AppSidebarHeader({
     breadcrumbs = [],
@@ -23,6 +28,9 @@ export function AppSidebarHeader({
     breadcrumbs?: BreadcrumbItemType[];
 }) {
     const { resolvedAppearance, updateAppearance } = useAppearance();
+    const { auth } = usePage<SharedData>().props;
+    const user = auth?.user;
+    const getInitials = useInitials();
 
     const [pendingCartCount, setPendingCartCount] = useState(0);
     const [lowStockItems, setLowStockItems] = useState<
@@ -101,7 +109,7 @@ export function AppSidebarHeader({
     return (
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-sidebar-border/50 px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4">
             <div className="flex items-center gap-2 min-w-0">
-                <SidebarTrigger className="-ml-1" />
+                <SidebarTrigger className="-ml-1 h-9 w-9 rounded-lg border border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 shadow-sm hover:shadow-md" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
 
@@ -202,6 +210,39 @@ export function AppSidebarHeader({
                         <Moon className="size-5 opacity-80" />
                     )}
                 </Button>
+
+                {/* Profile dropdown */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                            <Avatar className="h-8 w-8 overflow-hidden rounded-full">
+                                <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white text-lg">
+                                    {user?.avatar || (user?.name ? getInitials(user.name) : <User className="h-4 w-4" />)}
+                                </AvatarFallback>
+                            </Avatar>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                        <div className="px-2 py-1.5 text-sm font-medium">
+                            {user?.name}
+                        </div>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => router.visit(profileEdit().url)}>
+                            <Settings className="mr-2 h-4 w-4" />
+                            Settings
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <button
+                                type="button"
+                                className="w-full cursor-pointer"
+                                onClick={() => router.visit(logout().url)}
+                            >
+                                Log out
+                            </button>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </header>
     );
