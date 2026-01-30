@@ -3,7 +3,7 @@
         'name' => 'laravel/react-starter-kit',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'a3df06e484cd669be18b21f6315ec091d3a5561a',
+        'reference' => 'ba3665788ee4e96328cb6d3f09051d5603a69ea6',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -514,6 +514,15 @@
                 0 => '*',
             ),
         ),
+        'laminas/laminas-diactoros' => array(
+            'pretty_version' => '3.8.0',
+            'version' => '3.8.0.0',
+            'reference' => '60c182916b2749480895601649563970f3f12ec4',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../laminas/laminas-diactoros',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'laravel/boost' => array(
             'pretty_version' => 'v1.8.10',
             'version' => '1.8.10.0',
@@ -550,6 +559,15 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'laravel/octane' => array(
+            'pretty_version' => 'v2.13.5',
+            'version' => '2.13.5.0',
+            'reference' => 'c343716659c280a7613a0c10d3241215512355ee',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../laravel/octane',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'laravel/pail' => array(
             'pretty_version' => 'v1.2.4',
             'version' => '1.2.4.0',
@@ -580,7 +598,7 @@
         'laravel/react-starter-kit' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'a3df06e484cd669be18b21f6315ec091d3a5561a',
+            'reference' => 'ba3665788ee4e96328cb6d3f09051d5603a69ea6',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -889,6 +907,15 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'pestphp/pest-plugin-stressless' => array(
+            'pretty_version' => 'v4.0.0',
+            'version' => '4.0.0.0',
+            'reference' => '747b32c119a6500982b9dbb3081b15c6a2d76764',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../pestphp/pest-plugin-stressless',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
         'phar-io/manifest' => array(
             'pretty_version' => '2.0.4',
             'version' => '2.0.4.0',
@@ -1097,6 +1124,7 @@
             'dev_requirement' => false,
             'provided' => array(
                 0 => '1.0',
+                1 => '^1.0',
             ),
         ),
         'psr/http-message' => array(
@@ -1112,6 +1140,7 @@
             'dev_requirement' => false,
             'provided' => array(
                 0 => '1.0',
+                1 => '^1.1 || ^2.0',
             ),
         ),
         'psr/log' => array(
@@ -1547,6 +1576,15 @@
             'reference' => '2f8e1a6cdf590ca63715da4d3a7a3327404a523f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/process',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/psr-http-message-bridge' => array(
+            'pretty_version' => 'v7.4.4',
+            'version' => '7.4.4.0',
+            'reference' => '929ffe10bbfbb92e711ac3818d416f9daffee067',
+            'type' => 'symfony-bridge',
+            'install_path' => __DIR__ . '/../symfony/psr-http-message-bridge',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

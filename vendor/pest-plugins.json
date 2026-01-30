@@ -20,5 +20,6 @@
     "Pest\\Plugins\\Parallel",
     "Pest\\Arch\\Plugin",
     "Pest\\Laravel\\Plugin",
-    "Pest\\Profanity\\Plugin"
+    "Pest\\Profanity\\Plugin",
+    "Pest\\Stressless\\Plugin"
 ]
